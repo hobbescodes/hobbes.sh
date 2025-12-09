@@ -152,25 +152,17 @@ src/
 │   └── useCommandLine.ts          # Command parsing/execution
 │
 ├── lib/
-│   ├── theme.ts                   # Color token exports
+│   ├── content.ts                 # Markdown content loading utilities
 │   ├── routes.ts                  # Route tree for oil navigation
 │   ├── ascii/
 │   │   └── hobbes.ts              # HobbesCodes ASCII art
 │   └── utils.ts                   # Shared utilities
-│
-├── content/
-│   ├── about.ts                   # About page content
-│   ├── contact.ts                 # Contact info
-│   ├── resume.ts                  # Resume content
-│   └── projects/                  # Project data (mock -> GitHub API later)
-│       └── index.ts
 │
 ├── routes/
 │   ├── __root.tsx                 # Terminal shell wrapper
 │   ├── index.tsx                  # Home page
 │   ├── about.tsx
 │   ├── contact.tsx
-│   ├── resume.tsx
 │   ├── projects/
 │   │   ├── index.tsx              # Projects list (oil-style)
 │   │   └── $slug.tsx              # Individual project
@@ -261,7 +253,6 @@ interface OilEntry {
 ../                              <- Parent directory
  about.md
  contact.md
- resume.md
  projects/
  blog/
 
@@ -309,7 +300,6 @@ The `:` command input area.
 /                    -> ~/hobbescodes/
 /about              -> ~/hobbescodes/about.md
 /contact            -> ~/hobbescodes/contact.md
-/resume             -> ~/hobbescodes/resume.md
 /projects           -> ~/hobbescodes/projects/
 /projects/:slug     -> ~/hobbescodes/projects/{slug}.md
 /blog               -> ~/hobbescodes/blog/
@@ -337,7 +327,6 @@ export const routeTree: RouteEntry = {
   children: [
     { name: 'about', displayName: 'about.md', type: 'file', path: '/about' },
     { name: 'contact', displayName: 'contact.md', type: 'file', path: '/contact' },
-    { name: 'resume', displayName: 'resume.md', type: 'file', path: '/resume' },
     { 
       name: 'projects', 
       displayName: 'projects/', 
@@ -415,44 +404,39 @@ export const projects: Project[] = [
 ]
 ```
 
-### About/Contact/Resume Content
+### Content Structure (Markdown Files)
 
-```typescript
-// content/about.ts
+Static content is stored as markdown files in the `content/` directory:
 
-export const aboutContent = {
-  title: 'About Me',
-  sections: [
-    {
-      heading: '## whoami',
-      content: `
-        Software engineer and tiger enthusiast.
-        Building things on the internet since [year].
-      `
-    },
-    {
-      heading: '## Skills',
-      content: `
-        - TypeScript / JavaScript
-        - React / Next.js / TanStack
-        - Node.js / Bun
-        - PostgreSQL / Redis
-        - Neovim / Terminal workflows
-      `
-    },
-    // ... more sections
-  ]
-}
-
-// content/contact.ts
-
-export const contactContent = {
-  email: 'hello@example.com',
-  github: 'https://github.com/username',
-  twitter: 'https://twitter.com/username',
-  linkedin: 'https://linkedin.com/in/username',
-}
 ```
+content/
+├── about.md           # About page content (pure markdown)
+├── contact.md         # Contact page content (pure markdown)
+└── blog/
+    ├── post-slug.md   # Blog posts with frontmatter
+    └── ...
+```
+
+Blog posts use frontmatter for metadata:
+
+```markdown
+---
+title: Post Title
+description: Brief description
+date: 2024-12-08
+tags: [tag1, tag2]
+readingTime: 5 min read
+---
+
+# Post Title
+
+Content here...
+```
+
+Content is loaded via `src/lib/content.ts`:
+- `loadPageContent(filename)` - Load about.md, contact.md
+- `loadBlogPost(slug)` - Load a blog post with frontmatter
+- `getAllBlogPosts()` - Get all blog post metadata for listings
 
 ---
 
@@ -503,9 +487,8 @@ export const contactContent = {
 ### Phase 2: Content Pages
 
 1. **Static Pages**
-   - [ ] About page with mock content
-   - [ ] Contact page with links
-   - [ ] Resume page
+   - [x] About page with markdown content
+   - [x] Contact page with markdown content
 
 2. **Dynamic Listings**
    - [ ] Projects index with oil-style listing

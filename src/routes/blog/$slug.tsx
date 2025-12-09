@@ -2,14 +2,14 @@ import { createFileRoute, useNavigate, notFound } from '@tanstack/react-router'
 import { useMemo } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
-import { getBlogPost } from '@/content/blog/posts'
+import { loadBlogPost } from '@/lib/content'
 import { SyntaxHighlight } from '@/components/ui/SyntaxHighlight'
 import { useBufferNavigation } from '@/hooks/useBufferNavigation'
 
 export const Route = createFileRoute('/blog/$slug')({
   component: BlogPostPage,
-  loader: ({ params }) => {
-    const post = getBlogPost(params.slug)
+  loader: async ({ params }) => {
+    const post = await loadBlogPost({ data: params.slug })
     if (!post) {
       throw notFound()
     }

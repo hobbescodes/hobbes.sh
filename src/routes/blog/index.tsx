@@ -4,11 +4,15 @@ import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
 import { OilEntry } from '@/components/oil'
 import { useNavigation } from '@/context/NavigationContext'
-import { getAllBlogPosts } from '@/content/blog/posts'
+import { getAllBlogPosts } from '@/lib/content'
 import type { RouteEntry } from '@/types'
 
 export const Route = createFileRoute('/blog/')({
   component: BlogPage,
+  loader: async () => {
+    const posts = await getAllBlogPosts()
+    return { posts }
+  },
   validateSearch: (search: Record<string, unknown>): { from?: string } => ({
     from: typeof search.from === 'string' ? search.from : undefined,
   }),
@@ -18,8 +22,7 @@ function BlogPage() {
   const navigate = useNavigate()
   const { mode, getCount, setCountBuffer } = useNavigation()
   const { from } = Route.useSearch()
-  
-  const posts = getAllBlogPosts()
+  const { posts } = Route.useLoaderData()
   
   // Find the index of the entry we came from (if any)
   // Index 0 is parent (..), so post entries start at 1

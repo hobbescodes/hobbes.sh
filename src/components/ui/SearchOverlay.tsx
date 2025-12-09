@@ -1,6 +1,5 @@
 import { type FC, useMemo } from 'react'
 import type { SearchResult } from '@/context/NavigationContext'
-import { blogPosts } from '@/content/blog/posts'
 
 // Mock project data for preview - should match projects/index.tsx
 const projectsData: Record<string, { description: string; language: string; stars: number; topics: string[] }> = {
@@ -28,7 +27,6 @@ const projectsData: Record<string, { description: string; language: string; star
 const staticPageInfo: Record<string, { description: string; type: string }> = {
   '/about': { description: 'Learn about me, my skills, and my interests', type: 'markdown' },
   '/contact': { description: 'Get in touch via email or social media', type: 'markdown' },
-  '/resume': { description: 'My professional experience and education', type: 'markdown' },
   '/projects': { description: 'Browse my projects and open source work', type: 'directory' },
   '/blog': { description: 'Read my thoughts on development and tech', type: 'directory' },
 }
@@ -228,18 +226,17 @@ const PreviewPane: FC<PreviewPaneProps> = ({ result }) => {
     if (!result) return null
 
     // Check if it's a blog post
+    // Note: Blog post data is now loaded from markdown files server-side
+    // The preview will show basic info from the search result
     if (result.path.startsWith('/blog/') && result.path !== '/blog') {
       const slug = result.path.replace('/blog/', '')
-      const post = blogPosts.find((p) => p.slug === slug)
-      if (post) {
-        return {
-          type: 'blog' as const,
-          title: post.title,
-          date: post.date,
-          readingTime: post.readingTime || '',
-          tags: post.tags,
-          preview: post.content.slice(0, 8).filter((line) => line.trim()),
-        }
+      return {
+        type: 'blog' as const,
+        title: slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()),
+        date: '',
+        readingTime: '',
+        tags: [] as string[],
+        preview: result.snippet ? [result.snippet] : [],
       }
     }
 
