@@ -45,7 +45,7 @@ export const Terminal: FC<TerminalProps> = ({
     >
       {/* Terminal window */}
       <div
-        className="relative flex flex-col w-[50vw] min-w-[600px] h-[80vh] rounded-lg overflow-hidden shadow-2xl"
+        className="relative flex flex-col w-[70vw] min-w-[600px] h-[80vh] rounded-lg overflow-hidden shadow-2xl"
         style={{
           backgroundColor: 'var(--background)',
           border: '1px solid var(--surface0)',
