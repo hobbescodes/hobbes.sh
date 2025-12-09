@@ -31,13 +31,13 @@ const ThemeProvider = ({
     [theme, setTheme],
   );
 
-  // Listen for flashbang event from NavigationContext
+  // Listen for theme-set event from NavigationContext (easter egg commands)
   useEffect(() => {
-    const handleFlashbang = () => toggleTheme();
-    window.addEventListener("flashbang-toggle", handleFlashbang);
+    const handleThemeSet = (e: CustomEvent<Theme>) => setTheme(e.detail);
+    window.addEventListener("theme-set", handleThemeSet as EventListener);
     return () =>
-      window.removeEventListener("flashbang-toggle", handleFlashbang);
-  }, [toggleTheme]);
+      window.removeEventListener("theme-set", handleThemeSet as EventListener);
+  }, [setTheme]);
 
   return (
     <ThemeContext value={{ theme, setTheme, toggleTheme }}>

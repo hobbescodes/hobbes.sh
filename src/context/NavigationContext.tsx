@@ -225,8 +225,11 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
       } else {
         setCommandError(`E32: Can't find file "${pathArg}"`);
       }
-    } else if (cmdLower === "flashbang") {
-      window.dispatchEvent(new CustomEvent("flashbang-toggle"));
+    } else if (cmdLower === "sane") {
+      window.dispatchEvent(new CustomEvent("theme-set", { detail: "dark" }));
+      setMode("NORMAL");
+    } else if (cmdLower === "insane") {
+      window.dispatchEvent(new CustomEvent("theme-set", { detail: "light" }));
       setMode("NORMAL");
     } else {
       setCommandError(`Unknown command: ${cmd}`);
@@ -377,7 +380,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
               // Clear error on any keypress
               if (commandError) {
                 setCommandError(null);
-                setCommandBuffer(e.key);
+                // If user types `:` after error, start fresh (`:` is the prompt, not part of command)
+                setCommandBuffer(e.key === ":" ? "" : e.key);
               } else {
                 setCommandBuffer((prev) => prev + e.key);
               }
