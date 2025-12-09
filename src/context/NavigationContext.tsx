@@ -4,6 +4,7 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type FC,
   type ReactNode,
 } from 'react'
@@ -45,6 +46,10 @@ interface NavigationContextValue {
   setCountBuffer: (count: string) => void
   getCount: () => number
 
+  // Pending operator for multi-key commands (e.g., "gx")
+  pendingOperator: string | null
+  setPendingOperator: (op: string | null) => void
+
   // Help overlay
   showHelp: boolean
   setShowHelp: (show: boolean) => void
@@ -77,6 +82,10 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
   const [countBuffer, setCountBuffer] = useState('')
+
+  // Pending operator for multi-key commands (e.g., "gx")
+  const [pendingOperator, setPendingOperator] = useState<string | null>(null)
+  const pendingOperatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Get the count value (defaults to 1 if no count specified)
   const getCount = useCallback(() => {
@@ -229,6 +238,24 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
 
       // Handle based on current mode
       if (mode === 'NORMAL') {
+        // Handle pending operator (e.g., 'g' waiting for 'x')
+        if (pendingOperator === 'g') {
+          e.preventDefault()
+          // Clear the timeout since we got a follow-up key
+          if (pendingOperatorTimeoutRef.current) {
+            clearTimeout(pendingOperatorTimeoutRef.current)
+            pendingOperatorTimeoutRef.current = null
+          }
+          
+          if (e.key === 'x') {
+            // Dispatch gx event for pages to handle
+            window.dispatchEvent(new CustomEvent('gx-execute'))
+          }
+          // Clear pending operator regardless of which key was pressed
+          setPendingOperator(null)
+          return
+        }
+
         // Handle Ctrl+D and Ctrl+U for half-page scrolling
         if (e.ctrlKey && (e.key === 'd' || e.key === 'u')) {
           e.preventDefault()
@@ -236,11 +263,24 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
           // Find the scrollable buffer container
           const scrollContainer = document.querySelector('.overflow-auto')
           if (scrollContainer) {
+            const lineHeight = 22.4 // 1.6 line-height * ~14px base font
+            const halfPageLines = Math.floor(scrollContainer.clientHeight / lineHeight / 2)
             const scrollAmount = scrollContainer.clientHeight / 2
+            
             scrollContainer.scrollBy({
               top: e.key === 'd' ? scrollAmount : -scrollAmount,
               behavior: 'smooth',
             })
+            
+            // Dispatch event for useBufferNavigation to update currentLine
+            window.dispatchEvent(
+              new CustomEvent('scroll-half-page', {
+                detail: {
+                  direction: e.key === 'd' ? 'down' : 'up',
+                  lines: halfPageLines,
+                },
+              })
+            )
           }
           return
         }
@@ -257,6 +297,16 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
         }
 
         switch (e.key) {
+          case 'g':
+            e.preventDefault()
+            setCountBuffer('') // Clear count when starting pending operator
+            setPendingOperator('g')
+            // Set timeout to clear pending operator after 800ms
+            pendingOperatorTimeoutRef.current = setTimeout(() => {
+              setPendingOperator(null)
+              pendingOperatorTimeoutRef.current = null
+            }, 800)
+            break
           case ':':
             e.preventDefault()
             setCountBuffer('') // Clear count when entering command mode
@@ -275,6 +325,11 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
           case 'Escape':
             e.preventDefault()
             setCountBuffer('') // Clear count on escape
+            setPendingOperator(null) // Clear pending operator on escape
+            if (pendingOperatorTimeoutRef.current) {
+              clearTimeout(pendingOperatorTimeoutRef.current)
+              pendingOperatorTimeoutRef.current = null
+            }
             setShowHelp(false)
             break
           case 'Backspace':
@@ -372,7 +427,13 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     }
 
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      // Clean up pending operator timeout on unmount
+      if (pendingOperatorTimeoutRef.current) {
+        clearTimeout(pendingOperatorTimeoutRef.current)
+      }
+    }
   }, [
     mode,
     setMode,
@@ -382,6 +443,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     selectedSearchIndex,
     navigate,
     countBuffer,
+    pendingOperator,
   ])
 
   // Reset mode when route changes
@@ -406,6 +468,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     countBuffer,
     setCountBuffer,
     getCount,
+    pendingOperator,
+    setPendingOperator,
     showHelp,
     setShowHelp,
   }

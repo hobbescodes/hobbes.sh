@@ -5,9 +5,16 @@ interface CommandLineProps {
   error: string | null
   /** When true, displays count mode (no : prefix, peach colored digits) */
   isCountMode?: boolean
+  /** Pending operator (e.g., 'g' waiting for next key) */
+  pendingOperator?: string | null
 }
 
-export const CommandLine: FC<CommandLineProps> = ({ buffer, error, isCountMode = false }) => {
+export const CommandLine: FC<CommandLineProps> = ({ 
+  buffer, 
+  error, 
+  isCountMode = false,
+  pendingOperator = null,
+}) => {
   return (
     <div
       className="flex items-center h-6 px-2 text-sm font-mono"
@@ -19,6 +26,15 @@ export const CommandLine: FC<CommandLineProps> = ({ buffer, error, isCountMode =
       {error ? (
         // Error state
         <span style={{ color: 'var(--red)' }}>{error}</span>
+      ) : pendingOperator ? (
+        // Pending operator mode - show operator in yellow/peach
+        <>
+          <span style={{ color: 'var(--yellow)' }}>{pendingOperator}</span>
+          <span
+            className="w-2 h-4 ml-0.5 animate-pulse"
+            style={{ backgroundColor: 'var(--cursor)' }}
+          />
+        </>
       ) : isCountMode ? (
         // Count mode - show digits in peach color, no prefix
         <>

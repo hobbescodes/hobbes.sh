@@ -1,21 +1,24 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useEffect } from 'react'
+import { useMemo } from 'react'
 import { Terminal } from '@/components/terminal'
-import { Buffer } from '@/components/editor'
-import { useNavigation } from '@/context/NavigationContext'
+import { Buffer, BufferLine } from '@/components/editor'
+import { useBufferNavigation } from '@/hooks/useBufferNavigation'
 
 // Mock project data - same as index for now
-const projects: Record<string, {
-  name: string
-  description: string
-  url: string
-  homepage?: string
-  language: string
-  stars: number
-  forks: number
-  topics: string[]
-  updatedAt: string
-}> = {
+const projects: Record<
+  string,
+  {
+    name: string
+    description: string
+    url: string
+    homepage?: string
+    language: string
+    stars: number
+    forks: number
+    topics: string[]
+    updatedAt: string
+  }
+> = {
   'terminal-website': {
     name: 'terminal-website',
     description: 'A terminal-inspired personal website built with TanStack Start',
@@ -56,107 +59,78 @@ export const Route = createFileRoute('/projects/$slug')({
 function ProjectPage() {
   const { slug } = Route.useParams()
   const navigate = useNavigate()
-  const { mode } = useNavigation()
   const project = projects[slug]
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (mode !== 'NORMAL') return
-      if (e.key === '-') {
-        e.preventDefault()
-        navigate({ to: '/projects', search: { from: `/projects/${slug}` } })
-      }
+  // Build content array - memoized since it depends on project
+  const content = useMemo(() => {
+    if (!project) {
+      return ['# 404 - Project Not Found', '', `Could not find project: ${slug}`, '']
     }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate, mode, slug])
-
-  if (!project) {
-    const content = [
-      '# 404 - Project Not Found',
+    return [
+      `# ${project.name}`,
       '',
-      `Could not find project: ${slug}`,
+      project.description,
+      '',
+      '',
+      '## Details',
+      '',
+      `  Language:    ${project.language}`,
+      `  Stars:       ${project.stars}`,
+      `  Forks:       ${project.forks}`,
+      `  Updated:     ${new Date(project.updatedAt).toLocaleDateString()}`,
+      '',
+      '',
+      '## Topics',
+      '',
+      ...project.topics.map((t) => `  - ${t}`),
+      '',
+      '',
+      '## Links',
+      '',
+      `  Repository:  ${project.url}`,
+      ...(project.homepage ? [`  Homepage:    ${project.homepage}`] : []),
       '',
     ]
+  }, [project, slug])
 
-    return (
-      <Terminal
-        title={`👻 ~/hobbescodes/projects/${slug}.md`}
-        filepath={`~/hobbescodes/projects/${slug}.md`}
-        filetype="markdown"
-        line={1}
-        col={1}
-      >
-        <Buffer lineCount={content.length + 3} currentLine={1}>
-          <div style={{ color: 'var(--text)' }}>
-            {content.map((line, i) => (
-              <div 
-                key={i} 
-                style={{
-                  color: line.startsWith('# ') ? 'var(--red)' : undefined,
-                  fontWeight: line.startsWith('# ') ? 'bold' : undefined,
-                }}
-              >
-                {line || '\u00A0'}
-              </div>
-            ))}
-          </div>
-        </Buffer>
-      </Terminal>
-    )
-  }
-
-  const content = [
-    `# ${project.name}`,
-    '',
-    project.description,
-    '',
-    '',
-    '## Details',
-    '',
-    `  Language:    ${project.language}`,
-    `  Stars:       ${project.stars}`,
-    `  Forks:       ${project.forks}`,
-    `  Updated:     ${new Date(project.updatedAt).toLocaleDateString()}`,
-    '',
-    '',
-    '## Topics',
-    '',
-    ...project.topics.map(t => `  - ${t}`),
-    '',
-    '',
-    '## Links',
-    '',
-    `  Repository:  ${project.url}`,
-    ...(project.homepage ? [`  Homepage:    ${project.homepage}`] : []),
-    '',
-  ]
+  const { currentLine, getLineProps } = useBufferNavigation({
+    content,
+    onNavigateBack: () => navigate({ to: '/projects', search: { from: `/projects/${slug}` } }),
+  })
 
   return (
     <Terminal
       title={`👻 ~/hobbescodes/projects/${slug}.md`}
       filepath={`~/hobbescodes/projects/${slug}.md`}
       filetype="markdown"
-      line={1}
+      line={currentLine}
       col={1}
     >
-      <Buffer lineCount={content.length + 3} currentLine={1}>
+      <Buffer lineCount={content.length + 3} currentLine={currentLine}>
         <div style={{ color: 'var(--text)' }}>
-          {content.map((line, i) => (
-            <div
-              key={i}
-              style={{
-                color: line.startsWith('# ') ? 'var(--red)' :
-                  line.startsWith('## ') ? 'var(--peach)' :
-                  line.startsWith('  - ') ? 'var(--teal)' :
-                  line.includes('https://') ? 'var(--blue)' :
-                  undefined,
-                fontWeight: line.startsWith('#') ? 'bold' : undefined,
-              }}
-            >
-              {line || '\u00A0'}
-            </div>
-          ))}
+          {content.map((line, i) => {
+            const { isSelected, hasLink } = getLineProps(i)
+            return (
+              <BufferLine key={i} isSelected={isSelected} hasLink={hasLink}>
+                <span
+                  style={{
+                    color: line.startsWith('# ')
+                      ? 'var(--red)'
+                      : line.startsWith('## ')
+                        ? 'var(--peach)'
+                        : line.startsWith('  - ')
+                          ? 'var(--teal)'
+                          : line.includes('https://')
+                            ? 'var(--blue)'
+                            : undefined,
+                    fontWeight: line.startsWith('#') ? 'bold' : undefined,
+                  }}
+                >
+                  {line || '\u00A0'}
+                </span>
+              </BufferLine>
+            )
+          })}
         </div>
       </Buffer>
     </Terminal>

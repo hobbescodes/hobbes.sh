@@ -53,6 +53,7 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                 <KeyBinding keys="Ctrl+d" description="Scroll down" />
                 <KeyBinding keys="Ctrl+u" description="Scroll up" />
                 <KeyBinding keys="Enter" description="Open" />
+                <KeyBinding keys="gx" description="Open link" />
                 <KeyBinding keys="-" description="Parent" />
               </div>
             </div>

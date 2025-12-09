@@ -29,6 +29,7 @@ export const Terminal: FC<TerminalProps> = ({
     commandBuffer,
     commandError,
     countBuffer,
+    pendingOperator,
     searchQuery,
     searchResults,
     selectedSearchIndex,
@@ -56,12 +57,13 @@ export const Terminal: FC<TerminalProps> = ({
         {/* Main content area */}
         <div className="flex-1 overflow-hidden">{children}</div>
 
-        {/* Command line (shown in COMMAND mode or when count buffer is active) */}
-        {(mode === 'COMMAND' || countBuffer) && (
+        {/* Command line (shown in COMMAND mode, count buffer, or pending operator) */}
+        {(mode === 'COMMAND' || countBuffer || pendingOperator) && (
           <CommandLine
             buffer={mode === 'COMMAND' ? commandBuffer : countBuffer}
             error={commandError}
-            isCountMode={mode !== 'COMMAND' && !!countBuffer}
+            isCountMode={mode !== 'COMMAND' && !!countBuffer && !pendingOperator}
+            pendingOperator={pendingOperator}
           />
         )}
 

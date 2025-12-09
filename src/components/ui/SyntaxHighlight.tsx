@@ -1,10 +1,18 @@
 import { type FC, type ReactNode, useMemo } from 'react'
 
+interface LineProps {
+  isSelected: boolean
+  hasLink: boolean
+  url: string | null
+}
+
 interface SyntaxHighlightProps {
   /** Array of content lines to render */
   content: string[]
   /** The filetype for context-specific highlighting */
   filetype?: 'markdown' | 'code' | 'typescript' | 'javascript' | 'rust' | 'lua'
+  /** Optional function to get line props for selection highlighting */
+  getLineProps?: (lineIndex: number) => LineProps
 }
 
 interface LineStyle {
@@ -20,6 +28,7 @@ interface LineStyle {
 export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
   content,
   filetype: _filetype = 'markdown',
+  getLineProps,
 }) => {
   const renderedLines = useMemo(() => {
     let inCodeBlock = false
@@ -72,28 +81,35 @@ export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
 
   return (
     <div style={{ color: 'var(--text)' }}>
-      {renderedLines.map((line) => (
-        <div
-          key={line.key}
-          style={{
-            ...line.style,
-            backgroundColor: line.isCodeBlock
-              ? 'var(--surface0)'
-              : line.style.backgroundColor,
-            paddingLeft: line.isCodeBlock ? '1rem' : undefined,
-            paddingRight: line.isCodeBlock ? '1rem' : undefined,
-            marginLeft: line.isCodeBlock ? '-0.5rem' : undefined,
-            marginRight: line.isCodeBlock ? '-0.5rem' : undefined,
-            borderRadius: line.isCodeBlockDelimiter ? '0.25rem' : undefined,
-          }}
-        >
-          {line.isCodeBlock && !line.isCodeBlockDelimiter ? (
-            <CodeLine content={line.content} language={line.language || ''} />
-          ) : (
-            line.content || '\u00A0'
-          )}
-        </div>
-      ))}
+      {renderedLines.map((line) => {
+        const lineProps = getLineProps?.(line.key)
+        const isSelectedWithLink = lineProps?.isSelected && lineProps?.hasLink
+
+        return (
+          <div
+            key={line.key}
+            style={{
+              ...line.style,
+              backgroundColor: isSelectedWithLink
+                ? 'var(--surface1)'
+                : line.isCodeBlock
+                  ? 'var(--surface0)'
+                  : line.style.backgroundColor,
+              paddingLeft: line.isCodeBlock ? '1rem' : isSelectedWithLink ? '1rem' : undefined,
+              paddingRight: line.isCodeBlock ? '1rem' : isSelectedWithLink ? '1rem' : undefined,
+              marginLeft: line.isCodeBlock ? '-0.5rem' : isSelectedWithLink ? '-1rem' : undefined,
+              marginRight: line.isCodeBlock ? '-0.5rem' : isSelectedWithLink ? '-1rem' : undefined,
+              borderRadius: line.isCodeBlockDelimiter ? '0.25rem' : undefined,
+            }}
+          >
+            {line.isCodeBlock && !line.isCodeBlockDelimiter ? (
+              <CodeLine content={line.content} language={line.language || ''} />
+            ) : (
+              line.content || '\u00A0'
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
