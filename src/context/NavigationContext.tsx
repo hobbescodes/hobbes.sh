@@ -15,7 +15,7 @@ import type { FC, ReactNode } from "react";
 import type { SearchableRoute } from "@/lib/routes";
 
 // Types
-export type NavigationMode = "NORMAL" | "COMMAND" | "SEARCH";
+export type NavigationMode = "NORMAL" | "COMMAND" | "SEARCH" | "GAME";
 
 export interface SearchResult {
   path: string;
@@ -230,6 +230,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
       setMode("NORMAL");
     } else if (cmdLower === "insane") {
       window.dispatchEvent(new CustomEvent("theme-set", { detail: "light" }));
+      setMode("NORMAL");
+    } else if (cmdLower === "snake") {
+      navigate({ to: "/game/snake", search: {} });
       setMode("NORMAL");
     } else {
       setCommandError(`Unknown command: ${cmd}`);
@@ -466,9 +469,13 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     pendingOperator,
   ]);
 
-  // Reset mode when route changes
+  // Reset mode when route changes (except for game routes which manage their own mode)
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally run on route change only
   useEffect(() => {
+    // Don't reset mode for game routes - they manage their own mode
+    if (location.pathname.startsWith("/game/")) {
+      return;
+    }
     setMode("NORMAL");
     setShowHelp(false);
   }, [location.pathname]);

@@ -15,6 +15,7 @@ const modeStyles: Record<string, { bg: string; text: string }> = {
   INSERT: { bg: "var(--green)", text: "var(--crust)" },
   COMMAND: { bg: "var(--peach)", text: "var(--crust)" },
   SEARCH: { bg: "var(--mauve)", text: "var(--crust)" },
+  GAME: { bg: "var(--green)", text: "var(--crust)" },
 };
 
 export const StatusLine: FC<StatusLineProps> = ({
