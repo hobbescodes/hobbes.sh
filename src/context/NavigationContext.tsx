@@ -40,6 +40,11 @@ interface NavigationContextValue {
   setCommandError: (error: string | null) => void
   executeCommand: () => void
 
+  // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
+  countBuffer: string
+  setCountBuffer: (count: string) => void
+  getCount: () => number
+
   // Help overlay
   showHelp: boolean
   setShowHelp: (show: boolean) => void
@@ -70,9 +75,19 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
   // Help overlay
   const [showHelp, setShowHelp] = useState(false)
 
+  // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
+  const [countBuffer, setCountBuffer] = useState('')
+
+  // Get the count value (defaults to 1 if no count specified)
+  const getCount = useCallback(() => {
+    const count = parseInt(countBuffer, 10)
+    return isNaN(count) || count < 1 ? 1 : count
+  }, [countBuffer])
+
   // Set mode with cleanup
   const setMode = useCallback((newMode: NavigationMode) => {
     setModeInternal(newMode)
+    setCountBuffer('') // Always clear count buffer on mode change
     if (newMode === 'NORMAL') {
       setSearchQuery('')
       setSearchResults([])
@@ -217,6 +232,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
         // Handle Ctrl+D and Ctrl+U for half-page scrolling
         if (e.ctrlKey && (e.key === 'd' || e.key === 'u')) {
           e.preventDefault()
+          setCountBuffer('') // Clear count on scroll
           // Find the scrollable buffer container
           const scrollContainer = document.querySelector('.overflow-auto')
           if (scrollContainer) {
@@ -229,21 +245,36 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
           return
         }
 
+        // Handle digit keys for count buffer (vim-style count prefix)
+        if (e.key >= '0' && e.key <= '9') {
+          // Don't capture '0' if count buffer is empty (0 alone could be future "go to start")
+          if (e.key === '0' && countBuffer === '') {
+            return
+          }
+          e.preventDefault()
+          setCountBuffer((prev) => prev + e.key)
+          return
+        }
+
         switch (e.key) {
           case ':':
             e.preventDefault()
+            setCountBuffer('') // Clear count when entering command mode
             setMode('COMMAND')
             break
           case '/':
             e.preventDefault()
+            setCountBuffer('') // Clear count when entering search mode
             setMode('SEARCH')
             break
           case '?':
             e.preventDefault()
+            setCountBuffer('')
             setShowHelp((prev) => !prev)
             break
           case 'Escape':
             e.preventDefault()
+            setCountBuffer('') // Clear count on escape
             setShowHelp(false)
             break
         }
@@ -343,6 +374,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     searchResults,
     selectedSearchIndex,
     navigate,
+    countBuffer,
   ])
 
   // Reset mode when route changes
@@ -364,6 +396,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     commandError,
     setCommandError,
     executeCommand,
+    countBuffer,
+    setCountBuffer,
+    getCount,
     showHelp,
     setShowHelp,
   }

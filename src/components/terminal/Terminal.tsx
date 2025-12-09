@@ -28,6 +28,7 @@ export const Terminal: FC<TerminalProps> = ({
     setMode,
     commandBuffer,
     commandError,
+    countBuffer,
     searchQuery,
     searchResults,
     selectedSearchIndex,
@@ -55,9 +56,13 @@ export const Terminal: FC<TerminalProps> = ({
         {/* Main content area */}
         <div className="flex-1 overflow-hidden">{children}</div>
 
-        {/* Command line (shown in COMMAND mode) */}
-        {mode === 'COMMAND' && (
-          <CommandLine buffer={commandBuffer} error={commandError} />
+        {/* Command line (shown in COMMAND mode or when count buffer is active) */}
+        {(mode === 'COMMAND' || countBuffer) && (
+          <CommandLine
+            buffer={mode === 'COMMAND' ? commandBuffer : countBuffer}
+            error={commandError}
+            isCountMode={mode !== 'COMMAND' && !!countBuffer}
+          />
         )}
 
         {/* Vim-style status line */}

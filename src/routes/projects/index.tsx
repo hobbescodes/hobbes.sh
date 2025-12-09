@@ -58,7 +58,7 @@ export const Route = createFileRoute('/projects/')({
 
 function ProjectsPage() {
   const navigate = useNavigate()
-  const { mode } = useNavigation()
+  const { mode, getCount, setCountBuffer } = useNavigation()
   const { from } = Route.useSearch()
   
   // Find the index of the entry we came from (if any)
@@ -85,15 +85,21 @@ function ProjectsPage() {
 
     switch (e.key) {
       case 'j':
-      case 'ArrowDown':
+      case 'ArrowDown': {
         e.preventDefault()
-        setSelectedIndex(prev => Math.min(prev + 1, totalItems - 1))
+        const count = getCount()
+        setSelectedIndex(prev => Math.min(prev + count, totalItems - 1))
+        setCountBuffer('')
         break
+      }
       case 'k':
-      case 'ArrowUp':
+      case 'ArrowUp': {
         e.preventDefault()
-        setSelectedIndex(prev => Math.max(prev - 1, 0))
+        const count = getCount()
+        setSelectedIndex(prev => Math.max(prev - count, 0))
+        setCountBuffer('')
         break
+      }
       case 'Enter':
         e.preventDefault()
         if (selectedIndex === 0) {
@@ -111,7 +117,7 @@ function ProjectsPage() {
         navigate({ to: '/', search: { from: '/projects' } })
         break
     }
-  }, [selectedIndex, navigate, totalItems, mode])
+  }, [selectedIndex, navigate, totalItems, mode, getCount, setCountBuffer])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)

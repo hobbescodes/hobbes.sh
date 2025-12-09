@@ -49,6 +49,7 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               <div className="space-y-2">
                 <KeyBinding keys="j / ↓" description="Move down" />
                 <KeyBinding keys="k / ↑" description="Move up" />
+                <KeyBinding keys="{n}j/k" description="Move n lines" />
                 <KeyBinding keys="Ctrl+d" description="Scroll down" />
                 <KeyBinding keys="Ctrl+u" description="Scroll up" />
                 <KeyBinding keys="Enter" description="Open" />

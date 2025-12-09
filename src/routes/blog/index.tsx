@@ -16,7 +16,7 @@ export const Route = createFileRoute('/blog/')({
 
 function BlogPage() {
   const navigate = useNavigate()
-  const { mode } = useNavigation()
+  const { mode, getCount, setCountBuffer } = useNavigation()
   const { from } = Route.useSearch()
   
   const posts = getAllBlogPosts()
@@ -59,15 +59,24 @@ function BlogPage() {
         case 'j':
         case 'ArrowDown':
           e.preventDefault()
-          setSelectedIndex((prev) => Math.min(prev + 1, totalItems - 1))
+          {
+            const count = getCount()
+            setSelectedIndex((prev) => Math.min(prev + count, totalItems - 1))
+            setCountBuffer('')
+          }
           break
         case 'k':
         case 'ArrowUp':
           e.preventDefault()
-          setSelectedIndex((prev) => Math.max(prev - 1, 0))
+          {
+            const count = getCount()
+            setSelectedIndex((prev) => Math.max(prev - count, 0))
+            setCountBuffer('')
+          }
           break
         case 'Enter':
           e.preventDefault()
+          setCountBuffer('')
           if (selectedIndex === 0) {
             // Navigate to parent with current path as 'from'
             navigate({ to: '/', search: { from: '/blog' } })
@@ -80,11 +89,12 @@ function BlogPage() {
           break
         case '-':
           e.preventDefault()
+          setCountBuffer('')
           navigate({ to: '/', search: { from: '/blog' } })
           break
       }
     },
-    [selectedIndex, navigate, totalItems, posts, mode]
+    [selectedIndex, navigate, totalItems, posts, mode, getCount, setCountBuffer]
   )
 
   useEffect(() => {

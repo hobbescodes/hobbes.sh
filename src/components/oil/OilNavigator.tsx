@@ -42,7 +42,7 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
     }
   }, [selectedIndex, hasParent, entries, navigate, currentPath])
 
-  const { mode } = useNavigation()
+  const { mode, getCount, setCountBuffer } = useNavigation()
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't handle if user is typing in an input
@@ -59,19 +59,29 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
       case 'j':
       case 'ArrowDown':
         e.preventDefault()
-        onSelectedIndexChange(Math.min(selectedIndex + 1, totalItems - 1))
+        {
+          const count = getCount()
+          onSelectedIndexChange(Math.min(selectedIndex + count, totalItems - 1))
+          setCountBuffer('') // Clear count after motion
+        }
         break
       case 'k':
       case 'ArrowUp':
         e.preventDefault()
-        onSelectedIndexChange(Math.max(selectedIndex - 1, 0))
+        {
+          const count = getCount()
+          onSelectedIndexChange(Math.max(selectedIndex - count, 0))
+          setCountBuffer('') // Clear count after motion
+        }
         break
       case 'Enter':
         e.preventDefault()
+        setCountBuffer('') // Clear count on navigation
         handleNavigate()
         break
       case '-':
         e.preventDefault()
+        setCountBuffer('') // Clear count on navigation
         if (currentPath !== '/') {
           navigate({ 
             to: getParentPath(currentPath),
@@ -80,7 +90,7 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
         }
         break
     }
-  }, [selectedIndex, totalItems, onSelectedIndexChange, handleNavigate, navigate, currentPath, mode])
+  }, [selectedIndex, totalItems, onSelectedIndexChange, handleNavigate, navigate, currentPath, mode, getCount, setCountBuffer])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)

@@ -1,4 +1,5 @@
 import type { RouteEntry } from '@/types'
+import { blogPosts } from '@/content/blog/posts'
 
 export const routeTree: RouteEntry = {
   name: 'hobbescodes',
@@ -163,29 +164,10 @@ function getProjectSearchRoutes(): SearchableRoute[] {
 
 /**
  * Get searchable routes for blog posts
- * This will be populated from the blog posts data
+ * Dynamically imports from the blog posts data
  */
 function getBlogSearchRoutes(): SearchableRoute[] {
-  // Blog posts for search
-  const posts = [
-    {
-      slug: 'building-terminal-website',
-      title: 'Building a Terminal-Inspired Website',
-      description: 'How I built this website to look and feel like Neovim in a terminal',
-    },
-    {
-      slug: 'why-i-use-neovim',
-      title: 'Why I Use Neovim',
-      description: 'My journey from VS Code to Neovim and why I never looked back',
-    },
-    {
-      slug: 'my-dev-setup-2024',
-      title: 'My Development Setup in 2024',
-      description: 'A tour of my terminal-centric development environment',
-    },
-  ]
-
-  return posts.map((p) => ({
+  return blogPosts.map((p) => ({
     path: `/blog/${p.slug}`,
     displayName: `${p.slug}.md`,
     type: 'file' as const,
