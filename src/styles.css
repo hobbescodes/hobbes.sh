@@ -11,8 +11,8 @@
   --cursor: #7287fd;
 
   /* Terminal-specific backgrounds */
-  --terminal-bg: rgba(239, 241, 245, 0.85);
-  --wallpaper-overlay: rgba(172, 199, 242, 0.75);
+  --terminal-bg: rgba(239, 241, 245, 0.65);
+  --wallpaper-overlay: rgba(172, 199, 242, 0.45);
 
   /* Catppuccin Latte Base Colors */
   --base: #eff1f5;
