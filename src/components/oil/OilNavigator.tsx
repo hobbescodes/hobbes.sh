@@ -26,15 +26,16 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
   const hasParent = showParent && currentPath !== '/'
   const totalItems = hasParent ? entries.length + 1 : entries.length
 
-  const handleNavigate = useCallback(() => {
-    if (hasParent && selectedIndex === 0) {
+  const handleNavigate = useCallback((index?: number) => {
+    const targetIndex = index ?? selectedIndex
+    if (hasParent && targetIndex === 0) {
       // Navigate to parent with current path as 'from'
       navigate({ 
         to: getParentPath(currentPath),
         search: { from: currentPath },
       })
     } else {
-      const entryIndex = hasParent ? selectedIndex - 1 : selectedIndex
+      const entryIndex = hasParent ? targetIndex - 1 : targetIndex
       const entry = entries[entryIndex]
       if (entry) {
         navigate({ to: entry.path, search: {} })
@@ -115,6 +116,7 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
           entry={{ name: '..', displayName: '../', type: 'directory', path: getParentPath(currentPath) }}
           isSelected={selectedIndex === 0}
           isParent
+          onClick={() => handleNavigate(0)}
         />
       )}
 
@@ -126,6 +128,7 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
             key={entry.path}
             entry={entry}
             isSelected={selectedIndex === adjustedIndex}
+            onClick={() => handleNavigate(adjustedIndex)}
           />
         )
       })}

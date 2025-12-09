@@ -26,10 +26,17 @@ function NotFoundPage() {
     []
   )
 
-  const { currentLine, getLineProps } = useBufferNavigation({
+  const { currentLine, setCurrentLine, getLineProps } = useBufferNavigation({
     content,
     onNavigateBack: () => navigate({ to: '/blog', search: {} }),
   })
+
+  const handleLineDoubleClick = (lineNumber: number) => {
+    const lineProps = getLineProps(lineNumber - 1)
+    if (lineProps.url) {
+      window.open(lineProps.url, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   return (
     <Terminal
@@ -39,7 +46,13 @@ function NotFoundPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={10} currentLine={currentLine} contentLineCount={content.length}>
+      <Buffer
+        lineCount={10}
+        currentLine={currentLine}
+        contentLineCount={content.length}
+        onLineClick={setCurrentLine}
+        onLineDoubleClick={handleLineDoubleClick}
+      >
         <SyntaxHighlight content={content} filetype="markdown" getLineProps={getLineProps} />
       </Buffer>
     </Terminal>
@@ -65,10 +78,17 @@ function BlogPostPage() {
     return [...metadataLines, ...post.content]
   }, [post])
 
-  const { currentLine, getLineProps } = useBufferNavigation({
+  const { currentLine, setCurrentLine, getLineProps } = useBufferNavigation({
     content: allContent,
     onNavigateBack: () => navigate({ to: '/blog', search: { from: `/blog/${post.slug}` } }),
   })
+
+  const handleLineDoubleClick = (lineNumber: number) => {
+    const lineProps = getLineProps(lineNumber - 1)
+    if (lineProps.url) {
+      window.open(lineProps.url, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   return (
     <Terminal
@@ -78,7 +98,13 @@ function BlogPostPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={allContent.length + 3} currentLine={currentLine} contentLineCount={allContent.length}>
+      <Buffer
+        lineCount={allContent.length + 3}
+        currentLine={currentLine}
+        contentLineCount={allContent.length}
+        onLineClick={setCurrentLine}
+        onLineDoubleClick={handleLineDoubleClick}
+      >
         <SyntaxHighlight content={allContent} filetype="markdown" getLineProps={getLineProps} />
       </Buffer>
     </Terminal>

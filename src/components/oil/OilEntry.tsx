@@ -6,6 +6,7 @@ interface OilEntryProps {
   isSelected: boolean
   isParent?: boolean
   children?: ReactNode  // Allow additional content after the entry name
+  onClick?: () => void  // Click handler for mouse navigation
 }
 
 export const OilEntry: FC<OilEntryProps> = ({
@@ -13,6 +14,7 @@ export const OilEntry: FC<OilEntryProps> = ({
   isSelected,
   isParent = false,
   children,
+  onClick,
 }) => {
   const displayText = isParent ? '../' : entry.displayName
   const isDirectory = isParent || entry.type === 'directory'
@@ -21,6 +23,7 @@ export const OilEntry: FC<OilEntryProps> = ({
     <div
       className="flex items-center leading-[1.6] relative"
       style={{ color: isSelected ? 'var(--text)' : 'var(--subtext1)' }}
+      onClick={onClick}
     >
       {/* Block cursor for selected item */}
       {isSelected && (

@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect, useCallback } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
 import { OilEntry } from '@/components/oil'
-import { useNavigation } from '@/context/NavigationContext'
+import { useOilNavigation } from '@/hooks/useOilNavigation'
 import type { RouteEntry } from '@/types'
 
 // Mock project data - structured for GitHub API compatibility
@@ -58,7 +57,6 @@ export const Route = createFileRoute('/projects/')({
 
 function ProjectsPage() {
   const navigate = useNavigate()
-  const { mode, getCount, setCountBuffer } = useNavigation()
   const { from } = Route.useSearch()
   
   // Find the index of the entry we came from (if any)
@@ -69,60 +67,25 @@ function ProjectsPage() {
     const index = projects.findIndex((p) => p.name === slug)
     return index >= 0 ? index + 1 : 0 // +1 because parent is index 0
   }
-  
-  const [selectedIndex, setSelectedIndex] = useState(getInitialIndex)
 
   // Total items: parent (..) + projects
   const totalItems = 1 + projects.length
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return
-    }
-
-    // Don't handle navigation keys when in COMMAND or SEARCH mode
-    if (mode !== 'NORMAL') return
-
-    switch (e.key) {
-      case 'j':
-      case 'ArrowDown': {
-        e.preventDefault()
-        const count = getCount()
-        setSelectedIndex(prev => Math.min(prev + count, totalItems - 1))
-        setCountBuffer('')
-        break
-      }
-      case 'k':
-      case 'ArrowUp': {
-        e.preventDefault()
-        const count = getCount()
-        setSelectedIndex(prev => Math.max(prev - count, 0))
-        setCountBuffer('')
-        break
-      }
-      case 'Enter':
-        e.preventDefault()
-        if (selectedIndex === 0) {
-          // Navigate to parent with current path as 'from'
-          navigate({ to: '/', search: { from: '/projects' } })
-        } else {
-          const project = projects[selectedIndex - 1]
-          if (project) {
-            navigate({ to: '/projects/$slug', params: { slug: project.name } })
-          }
-        }
-        break
-      case '-':
-        e.preventDefault()
+  const { selectedIndex, handleItemClick } = useOilNavigation({
+    totalItems,
+    initialIndex: getInitialIndex(),
+    onNavigate: (index) => {
+      if (index === 0) {
         navigate({ to: '/', search: { from: '/projects' } })
-        break
-    }
-  }, [selectedIndex, navigate, totalItems, mode, getCount, setCountBuffer])
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [handleKeyDown])
+      } else {
+        const project = projects[index - 1]
+        if (project) {
+          navigate({ to: '/projects/$slug', params: { slug: project.name } })
+        }
+      }
+    },
+    onNavigateToParent: () => navigate({ to: '/', search: { from: '/projects' } }),
+  })
 
   // Line calculation: header (1) + entries
   const currentLine = selectedIndex + 2
@@ -150,6 +113,7 @@ function ProjectsPage() {
             entry={{ name: '..', displayName: '../', type: 'directory', path: '/' }}
             isSelected={selectedIndex === 0}
             isParent
+            onClick={() => handleItemClick(0)}
           />
 
           {/* Project entries */}
@@ -158,6 +122,7 @@ function ProjectsPage() {
               key={entry.path}
               entry={entry}
               isSelected={selectedIndex === index + 1}
+              onClick={() => handleItemClick(index + 1)}
             >
               {/* Project metadata */}
               <span 

@@ -93,10 +93,17 @@ function ProjectPage() {
     ]
   }, [project, slug])
 
-  const { currentLine, getLineProps } = useBufferNavigation({
+  const { currentLine, setCurrentLine, getLineProps } = useBufferNavigation({
     content,
     onNavigateBack: () => navigate({ to: '/projects', search: { from: `/projects/${slug}` } }),
   })
+
+  const handleLineDoubleClick = (lineNumber: number) => {
+    const lineProps = getLineProps(lineNumber - 1)
+    if (lineProps.url) {
+      window.open(lineProps.url, '_blank', 'noopener,noreferrer')
+    }
+  }
 
   return (
     <Terminal
@@ -106,7 +113,13 @@ function ProjectPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={content.length + 3} currentLine={currentLine} contentLineCount={content.length}>
+      <Buffer
+        lineCount={content.length + 3}
+        currentLine={currentLine}
+        contentLineCount={content.length}
+        onLineClick={setCurrentLine}
+        onLineDoubleClick={handleLineDoubleClick}
+      >
         <div style={{ color: 'var(--text)' }}>
           {content.map((line, i) => {
             const { isSelected, hasLink } = getLineProps(i)
