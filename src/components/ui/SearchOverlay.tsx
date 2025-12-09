@@ -66,11 +66,6 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
   selectedIndex,
   onClose,
 }) => {
-  // Reverse results for telescope-style display (selected at bottom)
-  const reversedResults = useMemo(() => [...results].reverse(), [results]);
-  // Adjust selected index for reversed array
-  const reversedSelectedIndex = results.length - 1 - selectedIndex;
-
   // Ref for selected item scrolling
   const selectedItemRef = useRef<HTMLDivElement>(null);
 
@@ -116,7 +111,7 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
           backgroundColor: "var(--base)",
           border: "1px solid var(--surface1)",
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-          maxHeight: "60vh",
+          height: "35vh",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -151,11 +146,8 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
               Results ({results.length})
             </div>
 
-            {/* Results list (reversed - selected at bottom) */}
-            <div
-              className="flex-1 overflow-auto py-1"
-              style={{ maxHeight: "40vh" }}
-            >
+            {/* Results list - flex-col-reverse puts first item at bottom */}
+            <div className="flex flex-1 flex-col-reverse overflow-auto py-1">
               {results.length === 0 ? (
                 <div
                   className="px-3 py-2 text-sm"
@@ -164,8 +156,8 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
                   {query ? "No matches found" : "Start typing to search..."}
                 </div>
               ) : (
-                reversedResults.map((result, index) => {
-                  const isSelected = index === reversedSelectedIndex;
+                results.map((result, index) => {
+                  const isSelected = index === selectedIndex;
                   // Extract parent path for nested files (e.g., "blog/" from "/blog/post-slug")
                   const pathParts = result.path.split("/").filter(Boolean);
                   const parentPath =
@@ -246,10 +238,7 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
             </div>
 
             {/* Preview content */}
-            <div
-              className="flex-1 overflow-auto p-3"
-              style={{ maxHeight: "40vh" }}
-            >
+            <div className="flex-1 overflow-auto p-3">
               <PreviewPane result={results[selectedIndex]} />
             </div>
           </div>
