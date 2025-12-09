@@ -19,7 +19,6 @@ I'm always interested in:
 
 - Interesting open source projects
 - Collaboration opportunities
-- Speaking at events
 - Coffee chats about tech
 
 ## Response Time
