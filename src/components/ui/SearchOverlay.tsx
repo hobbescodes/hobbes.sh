@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef } from "react";
 
 import type { FC } from "react";
 import type { SearchResult } from "@/context/NavigationContext";
@@ -31,6 +31,10 @@ const projectsData: Record<
 
 // Static page descriptions
 const staticPageInfo: Record<string, { description: string; type: string }> = {
+  "/": {
+    description: "Welcome to hobbescodes - home page",
+    type: "markdown",
+  },
   "/about": {
     description: "Learn about me, my skills, and my interests",
     type: "markdown",
@@ -62,61 +66,82 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
   selectedIndex,
   onClose,
 }) => {
+  // Reverse results for telescope-style display (selected at bottom)
+  const reversedResults = useMemo(() => [...results].reverse(), [results]);
+  // Adjust selected index for reversed array
+  const reversedSelectedIndex = results.length - 1 - selectedIndex;
+
+  // Ref for selected item scrolling
+  const selectedItemRef = useRef<HTMLDivElement>(null);
+
+  // Scroll selected item into view
+  const scrollSelectedIntoView = useEffectEvent(() => {
+    selectedItemRef.current?.scrollIntoView({
+      block: "nearest",
+      behavior: "smooth",
+    });
+  });
+
+  // Auto-scroll when selection changes
+  useEffect(() => {
+    scrollSelectedIntoView();
+  });
+
   return (
     <div
-      className="absolute inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "rgba(17, 17, 27, 0.85)" }} // --crust with opacity
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+      style={{ backgroundColor: "rgba(17, 17, 27, 0.85)" }}
       onClick={onClose}
     >
+      {/* Key hints - floating above modal */}
       <div
-        className="mx-4 flex w-full max-w-xl flex-col overflow-hidden rounded-lg"
+        className="mb-4 flex items-center gap-6 text-xs"
+        style={{ color: "var(--overlay1)" }}
+      >
+        <span>
+          <KeyHint>↑↓</KeyHint> navigate
+        </span>
+        <span>
+          <KeyHint>Enter</KeyHint> open
+        </span>
+        <span>
+          <KeyHint>Esc</KeyHint> close
+        </span>
+      </div>
+
+      {/* Main telescope modal */}
+      <div
+        className="flex w-full max-w-3xl flex-col overflow-hidden rounded-lg"
         style={{
           backgroundColor: "var(--base)",
-          border: "1px solid var(--surface0)",
+          border: "1px solid var(--surface1)",
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
-          maxHeight: "400px",
+          maxHeight: "60vh",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
+        {/* Title bar */}
         <div
           className="px-4 py-2 font-bold text-sm"
           style={{
             backgroundColor: "var(--surface0)",
-            color: "var(--text)",
+            color: "var(--blue)",
             borderBottom: "1px solid var(--surface1)",
           }}
         >
           Find Files
         </div>
 
-        {/* Search Input */}
-        <div
-          className="flex items-center gap-2 px-4 py-2"
-          style={{
-            borderBottom: "1px solid var(--surface1)",
-          }}
-        >
-          <span style={{ color: "var(--blue)" }}>&gt;</span>
-          <span style={{ color: "var(--text)" }} className="font-mono text-sm">
-            {query}
-          </span>
-          <span
-            className="h-4 w-2 animate-pulse"
-            style={{ backgroundColor: "var(--cursor)" }}
-          />
-        </div>
-
-        {/* Main Content - Two Panes */}
+        {/* Content area - two panes */}
         <div className="flex min-h-0 flex-1">
-          {/* Results Pane */}
+          {/* Left: Results pane */}
           <div
-            className="w-1/2 overflow-auto"
+            className="flex w-[45%] flex-col"
             style={{ borderRight: "1px solid var(--surface1)" }}
           >
-            {/* Results Header */}
+            {/* Results header */}
             <div
-              className="sticky top-0 px-3 py-1.5 font-bold text-xs"
+              className="px-3 py-1.5 font-bold text-xs"
               style={{
                 backgroundColor: "var(--mantle)",
                 color: "var(--overlay1)",
@@ -126,8 +151,11 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
               Results ({results.length})
             </div>
 
-            {/* Results List */}
-            <div className="py-1">
+            {/* Results list (reversed - selected at bottom) */}
+            <div
+              className="flex-1 overflow-auto py-1"
+              style={{ maxHeight: "40vh" }}
+            >
               {results.length === 0 ? (
                 <div
                   className="px-3 py-2 text-sm"
@@ -136,85 +164,115 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
                   {query ? "No matches found" : "Start typing to search..."}
                 </div>
               ) : (
-                results.map((result, index) => (
-                  <div
-                    key={result.path}
-                    className="flex items-center gap-2 px-3 py-1.5 font-mono text-sm"
-                    style={{
-                      backgroundColor:
-                        index === selectedIndex
+                reversedResults.map((result, index) => {
+                  const isSelected = index === reversedSelectedIndex;
+                  // Extract parent path for nested files (e.g., "blog/" from "/blog/post-slug")
+                  const pathParts = result.path.split("/").filter(Boolean);
+                  const parentPath =
+                    pathParts.length > 1 ? `${pathParts[0]}/` : null;
+
+                  return (
+                    <div
+                      key={result.path}
+                      ref={isSelected ? selectedItemRef : null}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm"
+                      style={{
+                        backgroundColor: isSelected
                           ? "var(--surface1)"
                           : "transparent",
-                      color:
-                        index === selectedIndex
-                          ? "var(--text)"
-                          : "var(--subtext0)",
-                    }}
-                  >
-                    {/* Selection indicator */}
-                    <span
-                      style={{
-                        color:
-                          index === selectedIndex
-                            ? "var(--cursor)"
-                            : "transparent",
+                        color: isSelected ? "var(--text)" : "var(--subtext0)",
                       }}
                     >
-                      &gt;
-                    </span>
+                      {/* Selection indicator */}
+                      <span
+                        style={{
+                          color: isSelected ? "var(--blue)" : "transparent",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {">"}
+                      </span>
 
-                    {/* Icon */}
-                    <span
-                      style={{
-                        color:
-                          result.type === "directory"
-                            ? "var(--blue)"
-                            : "var(--green)",
-                      }}
-                    >
-                      {result.type === "directory" ? "" : ""}
-                    </span>
+                      {/* Icon */}
+                      <span
+                        style={{
+                          color:
+                            result.type === "directory"
+                              ? "var(--blue)"
+                              : "var(--green)",
+                        }}
+                      >
+                        {result.type === "directory" ? "" : ""}
+                      </span>
 
-                    {/* Name */}
-                    <span
-                      className="truncate"
-                      style={{
-                        color:
-                          result.type === "directory"
-                            ? "var(--blue)"
-                            : "var(--text)",
-                      }}
-                    >
-                      {result.displayName}
-                    </span>
-                  </div>
-                ))
+                      {/* Parent path indicator for nested files */}
+                      {parentPath && (
+                        <span style={{ color: "var(--overlay1)" }}>
+                          {parentPath}
+                        </span>
+                      )}
+
+                      {/* Name */}
+                      <span
+                        className="truncate"
+                        style={{
+                          color:
+                            result.type === "directory"
+                              ? "var(--blue)"
+                              : "var(--text)",
+                        }}
+                      >
+                        {result.displayName}
+                      </span>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
 
-          {/* Preview Pane */}
-          <PreviewPane result={results[selectedIndex]} />
+          {/* Right: Preview pane */}
+          <div className="flex w-[55%] flex-col">
+            {/* Preview header */}
+            <div
+              className="px-3 py-1.5 font-bold text-xs"
+              style={{
+                backgroundColor: "var(--mantle)",
+                color: "var(--overlay1)",
+                borderBottom: "1px solid var(--surface0)",
+              }}
+            >
+              Preview
+            </div>
+
+            {/* Preview content */}
+            <div
+              className="flex-1 overflow-auto p-3"
+              style={{ maxHeight: "40vh" }}
+            >
+              <PreviewPane result={results[selectedIndex]} />
+            </div>
+          </div>
         </div>
 
-        {/* Footer */}
+        {/* Input area at bottom */}
         <div
-          className="flex items-center gap-4 px-4 py-2 text-xs"
+          className="flex items-center gap-2 px-4 py-2"
           style={{
             backgroundColor: "var(--surface0)",
-            color: "var(--overlay1)",
             borderTop: "1px solid var(--surface1)",
           }}
         >
-          <span>
-            <KeyHint>↑↓</KeyHint> navigate
+          <span style={{ color: "var(--blue)", fontWeight: "bold" }}>
+            {">"}
           </span>
-          <span>
-            <KeyHint>Enter</KeyHint> open
+          <span style={{ color: "var(--text)" }} className="text-sm">
+            {query}
           </span>
-          <span>
-            <KeyHint>Esc</KeyHint> close
-          </span>
+          <span
+            className="h-4 w-2 animate-pulse"
+            style={{ backgroundColor: "var(--cursor)" }}
+          />
         </div>
       </div>
     </div>
@@ -224,7 +282,7 @@ export const SearchOverlay: FC<SearchOverlayProps> = ({
 // Helper component for key hints
 const KeyHint: FC<{ children: React.ReactNode }> = ({ children }) => (
   <span
-    className="rounded px-1 py-0.5 font-mono text-xs"
+    className="rounded px-1.5 py-0.5 font-mono text-xs"
     style={{
       backgroundColor: "var(--surface1)",
       color: "var(--blue)",
@@ -244,17 +302,14 @@ const PreviewPane: FC<PreviewPaneProps> = ({ result }) => {
     if (!result) return null;
 
     // Check if it's a blog post
-    // Note: Blog post data is now loaded from markdown files server-side
-    // The preview will show basic info from the search result
     if (result.path.startsWith("/blog/") && result.path !== "/blog") {
-      const slug = result.path.replace("/blog/", "");
       return {
         type: "blog" as const,
-        title: slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-        date: "",
-        readingTime: "",
-        tags: [] as string[],
-        preview: result.snippet ? [result.snippet] : [],
+        title: result.title || result.displayName.replace(".md", ""),
+        description: result.snippet || "",
+        date: result.date || "",
+        readingTime: result.readingTime || "",
+        tags: result.tags || [],
       };
     }
 
@@ -293,43 +348,31 @@ const PreviewPane: FC<PreviewPaneProps> = ({ result }) => {
     };
   }, [result]);
 
-  return (
-    <div className="flex w-1/2 flex-col">
-      {/* Preview Header */}
+  if (!result) {
+    return (
       <div
-        className="px-3 py-1.5 font-bold text-xs"
-        style={{
-          backgroundColor: "var(--mantle)",
-          color: "var(--overlay1)",
-          borderBottom: "1px solid var(--surface0)",
-        }}
+        className="flex h-full items-center justify-center text-sm"
+        style={{ color: "var(--overlay0)" }}
       >
-        Preview
+        Select an item to preview
       </div>
+    );
+  }
 
-      {/* Preview Content */}
-      <div className="flex-1 overflow-auto p-3">
-        {!result ? (
-          <div
-            className="flex h-full items-center justify-center text-sm"
-            style={{ color: "var(--overlay0)" }}
-          >
-            Select an item to preview
-          </div>
-        ) : preview?.type === "blog" ? (
-          <BlogPreview preview={preview} />
-        ) : preview?.type === "project" ? (
-          <ProjectPreview preview={preview} />
-        ) : preview?.type === "static" ? (
-          <StaticPreview preview={preview} />
-        ) : (
-          <DefaultPreview
-            displayName={result.displayName}
-            snippet={result.snippet}
-          />
-        )}
-      </div>
-    </div>
+  if (preview?.type === "blog") {
+    return <BlogPreview preview={preview} />;
+  }
+
+  if (preview?.type === "project") {
+    return <ProjectPreview preview={preview} />;
+  }
+
+  if (preview?.type === "static") {
+    return <StaticPreview preview={preview} />;
+  }
+
+  return (
+    <DefaultPreview displayName={result.displayName} snippet={result.snippet} />
   );
 };
 
@@ -337,65 +380,64 @@ const PreviewPane: FC<PreviewPaneProps> = ({ result }) => {
 interface BlogPreviewData {
   type: "blog";
   title: string;
+  description: string;
   date: string;
   readingTime: string;
   tags: string[];
-  preview: string[];
 }
 
 const BlogPreview: FC<{ preview: BlogPreviewData }> = ({ preview }) => (
-  <div className="space-y-2 font-mono text-xs">
+  <div className="space-y-3 font-mono text-xs">
     {/* Title */}
-    <div className="font-bold" style={{ color: "var(--red)" }}>
-      # {preview.title}
+    <div className="font-bold text-sm" style={{ color: "var(--red)" }}>
+      {preview.title}
     </div>
+
+    {/* Description */}
+    {preview.description && (
+      <div style={{ color: "var(--text)" }}>{preview.description}</div>
+    )}
 
     {/* Metadata */}
-    <div
-      className="flex items-center gap-3"
-      style={{ color: "var(--overlay1)" }}
-    >
-      <span>{preview.date}</span>
-      <span style={{ color: "var(--overlay0)" }}>|</span>
-      <span>{preview.readingTime}</span>
-    </div>
+    {(preview.date || preview.readingTime) && (
+      <div
+        className="flex items-center gap-3"
+        style={{ color: "var(--overlay1)" }}
+      >
+        {preview.date && (
+          <span>
+            <span style={{ color: "var(--blue)" }}>Date:</span> {preview.date}
+          </span>
+        )}
+        {preview.readingTime && (
+          <span>
+            <span style={{ color: "var(--blue)" }}>Read:</span>{" "}
+            {preview.readingTime}
+          </span>
+        )}
+      </div>
+    )}
 
     {/* Tags */}
-    <div className="flex flex-wrap gap-1">
-      {preview.tags.map((tag) => (
-        <span
-          key={tag}
-          className="rounded px-1.5 py-0.5 text-xs"
-          style={{
-            backgroundColor: "var(--surface1)",
-            color: "var(--teal)",
-          }}
-        >
-          {tag}
-        </span>
-      ))}
-    </div>
-
-    {/* Content preview */}
-    <div
-      className="mt-2 space-y-1 border-t pt-2"
-      style={{
-        borderColor: "var(--surface1)",
-        color: "var(--subtext0)",
-      }}
-    >
-      {preview.preview.map((line, i) => (
-        <div
-          // biome-ignore lint/suspicious/noArrayIndexKey: static preview lines don't reorder
-          key={i}
-          style={{
-            color: line.startsWith("##") ? "var(--peach)" : undefined,
-          }}
-        >
-          {line || "\u00A0"}
+    {preview.tags.length > 0 && (
+      <div className="space-y-1">
+        <div style={{ color: "var(--blue)" }}>Tags:</div>
+        <div className="flex flex-wrap gap-1">
+          {preview.tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded px-1.5 py-0.5 text-xs"
+              style={{
+                backgroundColor: "var(--surface1)",
+                color: "var(--teal)",
+              }}
+            >
+              {tag}
+            </span>
+          ))}
         </div>
-      ))}
-    </div>
+      </div>
+    )}
   </div>
 );
 
@@ -460,7 +502,7 @@ const StaticPreview: FC<{ preview: StaticPreviewData }> = ({ preview }) => (
   <div className="space-y-3 font-mono text-xs">
     {/* Path */}
     <div className="font-bold" style={{ color: "var(--green)" }}>
-      ~{preview.path}.md
+      ~{preview.path === "/" ? "/home" : preview.path}.md
     </div>
 
     {/* Description */}

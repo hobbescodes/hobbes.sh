@@ -23,6 +23,10 @@ export interface SearchResult {
   type: "file" | "directory";
   matchType: "route" | "content";
   snippet?: string;
+  title?: string;
+  tags?: string[];
+  date?: string;
+  readingTime?: string;
 }
 
 interface NavigationContextValue {
@@ -107,6 +111,10 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
         type: route.type,
         matchType: "route" as const,
         snippet: route.description || route.title,
+        title: route.title,
+        tags: route.tags,
+        date: route.date,
+        readingTime: route.readingTime,
       }));
   }, [mode, searchQuery]);
 
@@ -411,28 +419,16 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
             }
             break;
           case "ArrowDown":
-          case "j":
-            // Only j navigates in search, not when typing
-            if (e.key === "ArrowDown" || (e.ctrlKey && e.key === "j")) {
-              e.preventDefault();
-              setSelectedSearchIndex((prev) =>
-                Math.min(prev + 1, searchResults.length - 1),
-              );
-            } else if (e.key === "j") {
-              // Let j be typed in search query
-              setSearchQuery((prev) => prev + e.key);
-            }
+            // In telescope-style (reversed list), down moves toward bottom (lower index)
+            e.preventDefault();
+            setSelectedSearchIndex((prev) => Math.max(prev - 1, 0));
             break;
           case "ArrowUp":
-          case "k":
-            // Only k navigates in search with ctrl
-            if (e.key === "ArrowUp" || (e.ctrlKey && e.key === "k")) {
-              e.preventDefault();
-              setSelectedSearchIndex((prev) => Math.max(prev - 1, 0));
-            } else if (e.key === "k") {
-              // Let k be typed in search query
-              setSearchQuery((prev) => prev + e.key);
-            }
+            // In telescope-style (reversed list), up moves toward top (higher index)
+            e.preventDefault();
+            setSelectedSearchIndex((prev) =>
+              Math.min(prev + 1, searchResults.length - 1),
+            );
             break;
           case "Backspace":
             e.preventDefault();

@@ -55,6 +55,8 @@ export interface SearchableRoute {
   title?: string;
   description?: string;
   tags?: string[];
+  date?: string;
+  readingTime?: string;
 }
 
 /**
@@ -123,6 +125,8 @@ function getBlogSearchRoutes(): SearchableRoute[] {
     title: post.title,
     description: post.description,
     tags: post.tags,
+    date: post.date,
+    readingTime: post.readingTime,
   }));
 }
 
