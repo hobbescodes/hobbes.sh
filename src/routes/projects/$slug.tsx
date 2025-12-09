@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
-import { NavigationHint } from '@/components/ui/NavigationHint'
+import { useNavigation } from '@/context/NavigationContext'
 
 // Mock project data - same as index for now
 const projects: Record<string, {
@@ -56,18 +56,20 @@ export const Route = createFileRoute('/projects/$slug')({
 function ProjectPage() {
   const { slug } = Route.useParams()
   const navigate = useNavigate()
+  const { mode } = useNavigation()
   const project = projects[slug]
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (mode !== 'NORMAL') return
       if (e.key === '-') {
         e.preventDefault()
-        navigate({ to: '/projects' })
+        navigate({ to: '/projects', search: { from: `/projects/${slug}` } })
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate])
+  }, [navigate, mode, slug])
 
   if (!project) {
     const content = [
@@ -82,7 +84,6 @@ function ProjectPage() {
         title={`👻 ~/hobbescodes/projects/${slug}.md`}
         filepath={`~/hobbescodes/projects/${slug}.md`}
         filetype="markdown"
-        mode="NORMAL"
         line={1}
         col={1}
       >
@@ -100,7 +101,6 @@ function ProjectPage() {
               </div>
             ))}
           </div>
-          <NavigationHint />
         </Buffer>
       </Terminal>
     )
@@ -137,7 +137,6 @@ function ProjectPage() {
       title={`👻 ~/hobbescodes/projects/${slug}.md`}
       filepath={`~/hobbescodes/projects/${slug}.md`}
       filetype="markdown"
-      mode="NORMAL"
       line={1}
       col={1}
     >
@@ -153,14 +152,12 @@ function ProjectPage() {
                   line.includes('https://') ? 'var(--blue)' :
                   undefined,
                 fontWeight: line.startsWith('#') ? 'bold' : undefined,
-                fontSize: line.startsWith('# ') ? '1.125rem' : undefined,
               }}
             >
               {line || '\u00A0'}
             </div>
           ))}
         </div>
-        <NavigationHint />
       </Buffer>
     </Terminal>
   )

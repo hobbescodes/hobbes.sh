@@ -1,10 +1,11 @@
 import { type FC } from 'react'
+import type { NavigationMode } from '@/context/NavigationContext'
 
 interface StatusLineProps {
   filepath: string
   filetype?: string
   encoding?: string
-  mode: 'NORMAL' | 'INSERT' | 'COMMAND' | 'SEARCH'
+  mode: NavigationMode
   line?: number
   col?: number
 }

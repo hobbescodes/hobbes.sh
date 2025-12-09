@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
 import { OilEntry } from '@/components/oil'
-import { NavigationHint } from '@/components/ui/NavigationHint'
+import { useNavigation } from '@/context/NavigationContext'
 import type { RouteEntry } from '@/types'
 
 // Mock project data - structured for GitHub API compatibility
@@ -51,11 +51,26 @@ const projectEntries: RouteEntry[] = projects.map(p => ({
 
 export const Route = createFileRoute('/projects/')({
   component: ProjectsPage,
+  validateSearch: (search: Record<string, unknown>): { from?: string } => ({
+    from: typeof search.from === 'string' ? search.from : undefined,
+  }),
 })
 
 function ProjectsPage() {
   const navigate = useNavigate()
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const { mode } = useNavigation()
+  const { from } = Route.useSearch()
+  
+  // Find the index of the entry we came from (if any)
+  // Index 0 is parent (..), so project entries start at 1
+  const getInitialIndex = () => {
+    if (!from) return 0
+    const slug = from.split('/').filter(Boolean)[1] // e.g., "/projects/foo" -> "foo"
+    const index = projects.findIndex((p) => p.name === slug)
+    return index >= 0 ? index + 1 : 0 // +1 because parent is index 0
+  }
+  
+  const [selectedIndex, setSelectedIndex] = useState(getInitialIndex)
 
   // Total items: parent (..) + projects
   const totalItems = 1 + projects.length
@@ -64,6 +79,9 @@ function ProjectsPage() {
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return
     }
+
+    // Don't handle navigation keys when in COMMAND or SEARCH mode
+    if (mode !== 'NORMAL') return
 
     switch (e.key) {
       case 'j':
@@ -79,7 +97,8 @@ function ProjectsPage() {
       case 'Enter':
         e.preventDefault()
         if (selectedIndex === 0) {
-          navigate({ to: '/' })
+          // Navigate to parent with current path as 'from'
+          navigate({ to: '/', search: { from: '/projects' } })
         } else {
           const project = projects[selectedIndex - 1]
           if (project) {
@@ -89,18 +108,10 @@ function ProjectsPage() {
         break
       case '-':
         e.preventDefault()
-        navigate({ to: '/' })
-        break
-      case 'g':
-        e.preventDefault()
-        setSelectedIndex(0)
-        break
-      case 'G':
-        e.preventDefault()
-        setSelectedIndex(totalItems - 1)
+        navigate({ to: '/', search: { from: '/projects' } })
         break
     }
-  }, [selectedIndex, navigate, totalItems])
+  }, [selectedIndex, navigate, totalItems, mode])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -116,7 +127,6 @@ function ProjectsPage() {
       title="👻 ~/hobbescodes/projects/"
       filepath="~/hobbescodes/projects/"
       filetype="oil"
-      mode="NORMAL"
       line={currentLine}
       col={1}
     >
@@ -150,9 +160,6 @@ function ProjectsPage() {
               </span>
             </OilEntry>
           ))}
-
-          {/* Navigation hint */}
-          <NavigationHint showNavigate showOpen showParent />
         </div>
       </Buffer>
     </Terminal>

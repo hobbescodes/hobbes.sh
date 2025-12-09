@@ -3,68 +3,104 @@ import { useState, useEffect, useCallback } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
 import { OilEntry } from '@/components/oil'
-import { NavigationHint } from '@/components/ui/NavigationHint'
+import { useNavigation } from '@/context/NavigationContext'
+import { getAllBlogPosts } from '@/content/blog/posts'
+import type { RouteEntry } from '@/types'
 
 export const Route = createFileRoute('/blog/')({
   component: BlogPage,
+  validateSearch: (search: Record<string, unknown>): { from?: string } => ({
+    from: typeof search.from === 'string' ? search.from : undefined,
+  }),
 })
 
 function BlogPage() {
   const navigate = useNavigate()
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const { mode } = useNavigation()
+  const { from } = Route.useSearch()
+  
+  const posts = getAllBlogPosts()
+  
+  // Find the index of the entry we came from (if any)
+  // Index 0 is parent (..), so post entries start at 1
+  const getInitialIndex = () => {
+    if (!from) return 0
+    const slug = from.split('/').filter(Boolean)[1] // e.g., "/blog/foo" -> "foo"
+    const index = posts.findIndex((p) => p.slug === slug)
+    return index >= 0 ? index + 1 : 0 // +1 because parent is index 0
+  }
+  
+  const [selectedIndex, setSelectedIndex] = useState(getInitialIndex)
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-      return
-    }
+  // Convert posts to RouteEntry format for OilEntry component
+  const postEntries: RouteEntry[] = posts.map((p) => ({
+    name: p.slug,
+    displayName: `${p.slug}.md`,
+    type: 'file',
+    path: `/blog/${p.slug}`,
+  }))
 
-    switch (e.key) {
-      case 'j':
-      case 'ArrowDown':
-      case 'k':
-      case 'ArrowUp':
-        // Only one item (parent), so no movement needed
-        e.preventDefault()
-        break
-      case 'Enter':
-      case '-':
-        e.preventDefault()
-        navigate({ to: '/' })
-        break
-      case 'g':
-      case 'G':
-        e.preventDefault()
-        setSelectedIndex(0)
-        break
-    }
-  }, [navigate])
+  // Total items: parent (..) + posts
+  const totalItems = 1 + posts.length
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return
+      }
+
+      // Don't handle navigation keys when in COMMAND or SEARCH mode
+      if (mode !== 'NORMAL') return
+
+      switch (e.key) {
+        case 'j':
+        case 'ArrowDown':
+          e.preventDefault()
+          setSelectedIndex((prev) => Math.min(prev + 1, totalItems - 1))
+          break
+        case 'k':
+        case 'ArrowUp':
+          e.preventDefault()
+          setSelectedIndex((prev) => Math.max(prev - 1, 0))
+          break
+        case 'Enter':
+          e.preventDefault()
+          if (selectedIndex === 0) {
+            // Navigate to parent with current path as 'from'
+            navigate({ to: '/', search: { from: '/blog' } })
+          } else {
+            const post = posts[selectedIndex - 1]
+            if (post) {
+              navigate({ to: '/blog/$slug', params: { slug: post.slug } })
+            }
+          }
+          break
+        case '-':
+          e.preventDefault()
+          navigate({ to: '/', search: { from: '/blog' } })
+          break
+      }
+    },
+    [selectedIndex, navigate, totalItems, posts, mode]
+  )
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
-  const comingSoonLines = [
-    '',
-    '  Coming soon...',
-    '',
-    '  Blog posts will be added here once the',
-    '  database integration is complete.',
-    '',
-    '  Stay tuned!',
-    '',
-  ]
-
-  // Line calculation: header (1) + parent (1) + coming soon message
-  const currentLine = 2
-  const totalLines = 2 + comingSoonLines.length + 5
+  // Line calculation: header (1) + entries
+  const currentLine = selectedIndex + 2
+  const totalLines = totalItems + 5
 
   return (
     <Terminal
       title="👻 ~/hobbescodes/blog/"
       filepath="~/hobbescodes/blog/"
       filetype="oil"
-      mode="NORMAL"
       line={currentLine}
       col={1}
     >
@@ -82,15 +118,22 @@ function BlogPage() {
             isParent
           />
 
-          {/* Coming soon message */}
-          <div className="mt-4" style={{ color: 'var(--overlay1)' }}>
-            {comingSoonLines.map((line, i) => (
-              <div key={i}>{line || '\u00A0'}</div>
-            ))}
-          </div>
-
-          {/* Navigation hint */}
-          <NavigationHint />
+          {/* Blog post entries */}
+          {postEntries.map((entry, index) => (
+            <OilEntry
+              key={entry.path}
+              entry={entry}
+              isSelected={selectedIndex === index + 1}
+            >
+              {/* Post metadata */}
+              <span
+                className="ml-2 text-xs"
+                style={{ color: 'var(--overlay0)' }}
+              >
+                {posts[index].date} | {posts[index].readingTime}
+              </span>
+            </OilEntry>
+          ))}
         </div>
       </Buffer>
     </Terminal>

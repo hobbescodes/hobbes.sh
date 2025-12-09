@@ -49,3 +49,14 @@ export interface ContactContent {
   linkedin?: string
   bluesky?: string
 }
+
+// Blog types
+export interface BlogPost {
+  slug: string
+  title: string
+  description: string
+  date: string
+  tags: string[]
+  content: string[]
+  readingTime?: string
+}

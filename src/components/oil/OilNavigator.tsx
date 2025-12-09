@@ -1,7 +1,7 @@
 import { type FC, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { OilEntry } from './OilEntry'
-import { NavigationHint } from '@/components/ui/NavigationHint'
+import { useNavigation } from '@/context/NavigationContext'
 import type { RouteEntry } from '@/types'
 import { getParentPath } from '@/lib/routes'
 
@@ -28,20 +28,30 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
 
   const handleNavigate = useCallback(() => {
     if (hasParent && selectedIndex === 0) {
-      // Navigate to parent
-      navigate({ to: getParentPath(currentPath) })
+      // Navigate to parent with current path as 'from'
+      navigate({ 
+        to: getParentPath(currentPath),
+        search: { from: currentPath },
+      })
     } else {
       const entryIndex = hasParent ? selectedIndex - 1 : selectedIndex
       const entry = entries[entryIndex]
       if (entry) {
-        navigate({ to: entry.path })
+        navigate({ to: entry.path, search: {} })
       }
     }
   }, [selectedIndex, hasParent, entries, navigate, currentPath])
 
+  const { mode } = useNavigation()
+
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't handle if user is typing in an input
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return
+    }
+
+    // Don't handle navigation keys when in COMMAND or SEARCH mode
+    if (mode !== 'NORMAL') {
       return
     }
 
@@ -63,21 +73,14 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
       case '-':
         e.preventDefault()
         if (currentPath !== '/') {
-          navigate({ to: getParentPath(currentPath) })
+          navigate({ 
+            to: getParentPath(currentPath),
+            search: { from: currentPath },
+          })
         }
         break
-      case 'g':
-        // gg - go to top
-        e.preventDefault()
-        onSelectedIndexChange(0)
-        break
-      case 'G':
-        // G - go to bottom
-        e.preventDefault()
-        onSelectedIndexChange(totalItems - 1)
-        break
     }
-  }, [selectedIndex, totalItems, onSelectedIndexChange, handleNavigate, navigate, currentPath])
+  }, [selectedIndex, totalItems, onSelectedIndexChange, handleNavigate, navigate, currentPath, mode])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
@@ -116,9 +119,6 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
           />
         )
       })}
-
-          {/* Navigation hint */}
-          <NavigationHint showNavigate showOpen showParent />
     </div>
   )
 }

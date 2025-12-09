@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
-import { NavigationHint } from '@/components/ui/NavigationHint'
+import { useNavigation } from '@/context/NavigationContext'
 
 export const Route = createFileRoute('/contact')({
   component: ContactPage,
@@ -10,17 +10,19 @@ export const Route = createFileRoute('/contact')({
 
 function ContactPage() {
   const navigate = useNavigate()
+  const { mode } = useNavigation()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (mode !== 'NORMAL') return
       if (e.key === '-') {
         e.preventDefault()
-        navigate({ to: '/' })
+        navigate({ to: '/', search: { from: '/contact' } })
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate])
+  }, [navigate, mode])
 
   const content = [
     '# Contact',
@@ -39,6 +41,13 @@ function ContactPage() {
     '  Twitter   https://twitter.com/hobbescodes',
     '  LinkedIn  https://linkedin.com/in/hobbescodes',
     '  Bluesky   https://bsky.app/profile/hobbescodes.dev',
+    '  Discord   hobbescodes',
+    '',
+    '',
+    '## Timezone',
+    '',
+    '  UTC-5 (Eastern Time)',
+    '  Usually available 9am - 6pm ET',
     '',
     '',
     '## Availability',
@@ -49,6 +58,12 @@ function ContactPage() {
     '  - Speaking at events',
     '  - Coffee chats about tech',
     '',
+    '',
+    '## Response Time',
+    '',
+    'I try to respond within 24-48 hours.',
+    'For urgent matters, Twitter DMs work best.',
+    '',
   ]
 
   return (
@@ -56,7 +71,6 @@ function ContactPage() {
       title="👻 ~/hobbescodes/contact.md"
       filepath="~/hobbescodes/contact.md"
       filetype="markdown"
-      mode="NORMAL"
       line={1}
       col={1}
     >
@@ -72,14 +86,12 @@ function ContactPage() {
                   line.startsWith('  - ') ? 'var(--green)' :
                   undefined,
                 fontWeight: line.startsWith('#') ? 'bold' : undefined,
-                fontSize: line.startsWith('# ') ? '1.125rem' : undefined,
               }}
             >
               {line || '\u00A0'}
             </div>
           ))}
         </div>
-        <NavigationHint />
       </Buffer>
     </Terminal>
   )

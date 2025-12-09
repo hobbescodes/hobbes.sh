@@ -79,3 +79,135 @@ export function pathToFilepath(path: string): string {
   if (path === '/') return '~/hobbescodes/'
   return `~/hobbescodes${path}`
 }
+
+// ============================================
+// Search-related types and functions
+// ============================================
+
+export interface SearchableRoute {
+  path: string
+  displayName: string
+  type: 'file' | 'directory'
+  title?: string
+  description?: string
+}
+
+/**
+ * Get all searchable routes flattened from the route tree
+ * This includes static routes and will be extended with dynamic content
+ */
+export function getAllRoutes(): SearchableRoute[] {
+  const routes: SearchableRoute[] = []
+
+  // Add static routes from routeTree
+  function flattenRoutes(entry: RouteEntry, _parentPath: string = '') {
+    routes.push({
+      path: entry.path,
+      displayName: entry.displayName,
+      type: entry.type,
+    })
+
+    if (entry.children) {
+      for (const child of entry.children) {
+        flattenRoutes(child, entry.path)
+      }
+    }
+  }
+
+  // Start from children to skip root
+  for (const child of routeTree.children || []) {
+    flattenRoutes(child)
+  }
+
+  // Add project entries with their metadata
+  // These are imported dynamically to avoid circular deps
+  const projectRoutes = getProjectSearchRoutes()
+  routes.push(...projectRoutes)
+
+  // Add blog entries with their metadata
+  const blogRoutes = getBlogSearchRoutes()
+  routes.push(...blogRoutes)
+
+  return routes
+}
+
+/**
+ * Get searchable routes for projects
+ * This will be populated from the projects data
+ */
+function getProjectSearchRoutes(): SearchableRoute[] {
+  // Mock project data for search - matches projects/index.tsx
+  const projects = [
+    {
+      name: 'terminal-website',
+      description: 'A terminal-inspired personal website built with TanStack Start',
+    },
+    {
+      name: 'nvim-config',
+      description: 'My Neovim configuration with LSP, Treesitter, and more',
+    },
+    {
+      name: 'rust-cli-tools',
+      description: 'A collection of useful CLI tools written in Rust',
+    },
+  ]
+
+  return projects.map((p) => ({
+    path: `/projects/${p.name}`,
+    displayName: `${p.name}.md`,
+    type: 'file' as const,
+    title: p.name,
+    description: p.description,
+  }))
+}
+
+/**
+ * Get searchable routes for blog posts
+ * This will be populated from the blog posts data
+ */
+function getBlogSearchRoutes(): SearchableRoute[] {
+  // Blog posts for search
+  const posts = [
+    {
+      slug: 'building-terminal-website',
+      title: 'Building a Terminal-Inspired Website',
+      description: 'How I built this website to look and feel like Neovim in a terminal',
+    },
+    {
+      slug: 'why-i-use-neovim',
+      title: 'Why I Use Neovim',
+      description: 'My journey from VS Code to Neovim and why I never looked back',
+    },
+    {
+      slug: 'my-dev-setup-2024',
+      title: 'My Development Setup in 2024',
+      description: 'A tour of my terminal-centric development environment',
+    },
+  ]
+
+  return posts.map((p) => ({
+    path: `/blog/${p.slug}`,
+    displayName: `${p.slug}.md`,
+    type: 'file' as const,
+    title: p.title,
+    description: p.description,
+  }))
+}
+
+/**
+ * Search routes by query
+ */
+export function searchRoutes(query: string): SearchableRoute[] {
+  if (!query.trim()) return []
+
+  const allRoutes = getAllRoutes()
+  const lowerQuery = query.toLowerCase()
+
+  return allRoutes.filter((route) => {
+    if (route.displayName.toLowerCase().includes(lowerQuery)) return true
+    if (route.path.toLowerCase().includes(lowerQuery)) return true
+    if (route.title?.toLowerCase().includes(lowerQuery)) return true
+    if (route.description?.toLowerCase().includes(lowerQuery)) return true
+    return false
+  })
+}

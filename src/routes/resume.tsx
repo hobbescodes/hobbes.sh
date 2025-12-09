@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Terminal } from '@/components/terminal'
 import { Buffer } from '@/components/editor'
-import { NavigationHint } from '@/components/ui/NavigationHint'
+import { useNavigation } from '@/context/NavigationContext'
 
 export const Route = createFileRoute('/resume')({
   component: ResumePage,
@@ -10,17 +10,19 @@ export const Route = createFileRoute('/resume')({
 
 function ResumePage() {
   const navigate = useNavigate()
+  const { mode } = useNavigation()
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (mode !== 'NORMAL') return
       if (e.key === '-') {
         e.preventDefault()
-        navigate({ to: '/' })
+        navigate({ to: '/', search: { from: '/resume' } })
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [navigate])
+  }, [navigate, mode])
 
   const content = [
     '# Resume',
@@ -72,7 +74,6 @@ function ResumePage() {
       title="👻 ~/hobbescodes/resume.md"
       filepath="~/hobbescodes/resume.md"
       filetype="markdown"
-      mode="NORMAL"
       line={1}
       col={1}
     >
@@ -90,7 +91,6 @@ function ResumePage() {
                   line.startsWith('  - ') ? 'var(--green)' :
                   undefined,
                 fontWeight: line.startsWith('#') ? 'bold' : undefined,
-                fontSize: line.startsWith('# ') ? '1.125rem' : undefined,
                 fontStyle: line.startsWith('    2') ? 'italic' : undefined,
               }}
             >
@@ -98,7 +98,6 @@ function ResumePage() {
             </div>
           ))}
         </div>
-        <NavigationHint />
       </Buffer>
     </Terminal>
   )

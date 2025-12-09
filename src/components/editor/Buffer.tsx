@@ -27,7 +27,12 @@ export const Buffer: FC<BufferProps> = ({
           startLine={startLine}
         />
       )}
-      <div className="flex-1 px-4 leading-[1.6]">
+      <div
+        className="flex-1 px-4 py-0"
+        style={{
+          lineHeight: '1.6',
+        }}
+      >
         {children}
       </div>
     </div>

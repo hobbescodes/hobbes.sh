@@ -1,0 +1,384 @@
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  type FC,
+  type ReactNode,
+} from 'react'
+import { useNavigate, useLocation } from '@tanstack/react-router'
+import { getAllRoutes, searchRoutes, type SearchableRoute } from '@/lib/routes'
+
+// Types
+export type NavigationMode = 'NORMAL' | 'COMMAND' | 'SEARCH'
+
+export interface SearchResult {
+  path: string
+  displayName: string
+  type: 'file' | 'directory'
+  matchType: 'route' | 'content'
+  snippet?: string
+}
+
+interface NavigationContextValue {
+  // Mode management
+  mode: NavigationMode
+  setMode: (mode: NavigationMode) => void
+
+  // Search state
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  searchResults: SearchResult[]
+  selectedSearchIndex: number
+  setSelectedSearchIndex: (index: number) => void
+
+  // Command state
+  commandBuffer: string
+  setCommandBuffer: (cmd: string) => void
+  commandError: string | null
+  setCommandError: (error: string | null) => void
+  executeCommand: () => void
+
+  // Help overlay
+  showHelp: boolean
+  setShowHelp: (show: boolean) => void
+}
+
+const NavigationContext = createContext<NavigationContextValue | null>(null)
+
+interface NavigationProviderProps {
+  children: ReactNode
+}
+
+export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) => {
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  // Mode state
+  const [mode, setModeInternal] = useState<NavigationMode>('NORMAL')
+
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(0)
+
+  // Command state
+  const [commandBuffer, setCommandBuffer] = useState('')
+  const [commandError, setCommandError] = useState<string | null>(null)
+
+  // Help overlay
+  const [showHelp, setShowHelp] = useState(false)
+
+  // Set mode with cleanup
+  const setMode = useCallback((newMode: NavigationMode) => {
+    setModeInternal(newMode)
+    if (newMode === 'NORMAL') {
+      setSearchQuery('')
+      setSearchResults([])
+      setSelectedSearchIndex(0)
+      setCommandBuffer('')
+      setCommandError(null)
+    } else if (newMode === 'SEARCH') {
+      setCommandBuffer('')
+      setCommandError(null)
+    } else if (newMode === 'COMMAND') {
+      setSearchQuery('')
+      setSearchResults([])
+      setSelectedSearchIndex(0)
+    }
+  }, [])
+
+  // Search function
+  const performSearch = useCallback((query: string) => {
+    if (!query.trim()) {
+      setSearchResults([])
+      setSelectedSearchIndex(0)
+      return
+    }
+
+    const allRoutes = getAllRoutes()
+    const lowerQuery = query.toLowerCase()
+
+    const results: SearchResult[] = allRoutes
+      .filter((route: SearchableRoute) => {
+        // Match against display name
+        if (route.displayName.toLowerCase().includes(lowerQuery)) return true
+        // Match against path
+        if (route.path.toLowerCase().includes(lowerQuery)) return true
+        // Match against title if available
+        if (route.title?.toLowerCase().includes(lowerQuery)) return true
+        // Match against description if available
+        if (route.description?.toLowerCase().includes(lowerQuery)) return true
+        return false
+      })
+      .map((route: SearchableRoute) => ({
+        path: route.path,
+        displayName: route.displayName,
+        type: route.type,
+        matchType: 'route' as const,
+        snippet: route.description || route.title,
+      }))
+
+    setSearchResults(results)
+    setSelectedSearchIndex(0)
+  }, [])
+
+  // Update search results when query changes
+  useEffect(() => {
+    if (mode === 'SEARCH') {
+      performSearch(searchQuery)
+    }
+  }, [searchQuery, mode, performSearch])
+
+  // Execute command
+  const executeCommand = useCallback(() => {
+    const cmd = commandBuffer.trim()
+    const cmdLower = cmd.toLowerCase()
+
+    if (cmdLower === 'q') {
+      navigate({ to: '/', search: {} })
+      setMode('NORMAL')
+    } else if (cmdLower === 'help' || cmdLower === 'h') {
+      setMode('NORMAL')
+      setShowHelp(true)
+    } else if (cmdLower === '') {
+      setMode('NORMAL')
+    } else if (cmdLower.startsWith('e ') || cmdLower.startsWith('edit ')) {
+      // Parse :e <path> or :edit <path>
+      const pathArg = cmd.replace(/^(e|edit)\s+/i, '').trim()
+      
+      if (!pathArg) {
+        setCommandError('E32: No file name')
+        return
+      }
+
+      // Normalize the path
+      let targetPath = pathArg
+      // Remove common prefixes like ~/ or ~/hobbescodes/
+      targetPath = targetPath.replace(/^~\/?/, '').replace(/^hobbescodes\/?/, '')
+      // Remove .md extension if present
+      targetPath = targetPath.replace(/\.md$/, '')
+      // Ensure leading slash
+      if (!targetPath.startsWith('/')) {
+        targetPath = '/' + targetPath
+      }
+      // Remove trailing slash for files
+      if (targetPath !== '/' && targetPath.endsWith('/')) {
+        targetPath = targetPath.slice(0, -1)
+      }
+
+      // Try exact match first
+      const allRoutes = getAllRoutes()
+      let match = allRoutes.find((r) => r.path === targetPath)
+
+      // Try fuzzy search if no exact match
+      if (!match) {
+        const searchResults = searchRoutes(pathArg)
+        if (searchResults.length === 1) {
+          match = searchResults[0]
+        } else if (searchResults.length > 1) {
+          // If multiple matches, try to find exact displayName match
+          match = searchResults.find(
+            (r) => r.displayName.replace(/\.md$/, '').toLowerCase() === pathArg.toLowerCase()
+          )
+          // Fall back to first result if no exact match
+          if (!match) {
+            match = searchResults[0]
+          }
+        }
+      }
+
+      if (match) {
+        // Use type assertion since we know these are valid routes
+        navigate({ to: match.path as '/', search: {} })
+        setMode('NORMAL')
+      } else {
+        setCommandError(`E32: Can't find file "${pathArg}"`)
+      }
+    } else {
+      setCommandError(`Unknown command: ${cmd}`)
+    }
+  }, [commandBuffer, navigate, setMode, setShowHelp])
+
+  // Global keyboard handler
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't capture if user is in an actual input field
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return
+      }
+
+      // Handle based on current mode
+      if (mode === 'NORMAL') {
+        // Handle Ctrl+D and Ctrl+U for half-page scrolling
+        if (e.ctrlKey && (e.key === 'd' || e.key === 'u')) {
+          e.preventDefault()
+          // Find the scrollable buffer container
+          const scrollContainer = document.querySelector('.overflow-auto')
+          if (scrollContainer) {
+            const scrollAmount = scrollContainer.clientHeight / 2
+            scrollContainer.scrollBy({
+              top: e.key === 'd' ? scrollAmount : -scrollAmount,
+              behavior: 'smooth',
+            })
+          }
+          return
+        }
+
+        switch (e.key) {
+          case ':':
+            e.preventDefault()
+            setMode('COMMAND')
+            break
+          case '/':
+            e.preventDefault()
+            setMode('SEARCH')
+            break
+          case '?':
+            e.preventDefault()
+            setShowHelp((prev) => !prev)
+            break
+          case 'Escape':
+            e.preventDefault()
+            setShowHelp(false)
+            break
+        }
+      } else if (mode === 'COMMAND') {
+        switch (e.key) {
+          case 'Escape':
+            e.preventDefault()
+            setMode('NORMAL')
+            break
+          case 'Enter':
+            e.preventDefault()
+            executeCommand()
+            break
+          case 'Backspace':
+            e.preventDefault()
+            // Clear error on any keypress
+            if (commandError) {
+              setCommandError(null)
+              setCommandBuffer('')
+            } else {
+              setCommandBuffer((prev) => prev.slice(0, -1))
+            }
+            break
+          default:
+            // Only handle printable characters
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              e.preventDefault()
+              // Clear error on any keypress
+              if (commandError) {
+                setCommandError(null)
+                setCommandBuffer(e.key)
+              } else {
+                setCommandBuffer((prev) => prev + e.key)
+              }
+            }
+            break
+        }
+      } else if (mode === 'SEARCH') {
+        switch (e.key) {
+          case 'Escape':
+            e.preventDefault()
+            setMode('NORMAL')
+            break
+          case 'Enter':
+            e.preventDefault()
+            if (searchResults.length > 0 && searchResults[selectedSearchIndex]) {
+              navigate({ to: searchResults[selectedSearchIndex].path as '/', search: {} })
+              setMode('NORMAL')
+            }
+            break
+          case 'ArrowDown':
+          case 'j':
+            // Only j navigates in search, not when typing
+            if (e.key === 'ArrowDown' || (e.ctrlKey && e.key === 'j')) {
+              e.preventDefault()
+              setSelectedSearchIndex((prev) =>
+                Math.min(prev + 1, searchResults.length - 1)
+              )
+            } else if (e.key === 'j') {
+              // Let j be typed in search query
+              setSearchQuery((prev) => prev + e.key)
+            }
+            break
+          case 'ArrowUp':
+          case 'k':
+            // Only k navigates in search with ctrl
+            if (e.key === 'ArrowUp' || (e.ctrlKey && e.key === 'k')) {
+              e.preventDefault()
+              setSelectedSearchIndex((prev) => Math.max(prev - 1, 0))
+            } else if (e.key === 'k') {
+              // Let k be typed in search query
+              setSearchQuery((prev) => prev + e.key)
+            }
+            break
+          case 'Backspace':
+            e.preventDefault()
+            setSearchQuery((prev) => prev.slice(0, -1))
+            break
+          default:
+            // Only handle printable characters
+            if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+              e.preventDefault()
+              setSearchQuery((prev) => prev + e.key)
+            }
+            break
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [
+    mode,
+    setMode,
+    executeCommand,
+    commandError,
+    searchResults,
+    selectedSearchIndex,
+    navigate,
+  ])
+
+  // Reset mode when route changes
+  useEffect(() => {
+    setMode('NORMAL')
+    setShowHelp(false)
+  }, [location.pathname, setMode])
+
+  const value: NavigationContextValue = {
+    mode,
+    setMode,
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    selectedSearchIndex,
+    setSelectedSearchIndex,
+    commandBuffer,
+    setCommandBuffer,
+    commandError,
+    setCommandError,
+    executeCommand,
+    showHelp,
+    setShowHelp,
+  }
+
+  return (
+    <NavigationContext.Provider value={value}>
+      {children}
+    </NavigationContext.Provider>
+  )
+}
+
+export function useNavigation(): NavigationContextValue {
+  const context = useContext(NavigationContext)
+  if (!context) {
+    throw new Error('useNavigation must be used within a NavigationProvider')
+  }
+  return context
+}

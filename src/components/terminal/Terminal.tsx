@@ -1,13 +1,16 @@
-import { type FC, type ReactNode } from 'react'
-import { TitleBar } from './TitleBar'
+import { CommandLine } from '@/components/editor'
+import { HelpOverlay } from '@/components/ui/HelpOverlay'
+import { SearchOverlay } from '@/components/ui/SearchOverlay'
+import { useNavigation } from '@/context/NavigationContext'
+import type { FC, ReactNode } from 'react'
 import { StatusLine } from './StatusLine'
+import { TitleBar } from './TitleBar'
 
 interface TerminalProps {
   children: ReactNode
   title: string
   filepath: string
   filetype?: string
-  mode?: 'NORMAL' | 'INSERT' | 'COMMAND' | 'SEARCH'
   line?: number
   col?: number
 }
@@ -17,20 +20,31 @@ export const Terminal: FC<TerminalProps> = ({
   title,
   filepath,
   filetype = 'text',
-  mode = 'NORMAL',
   line = 1,
   col = 1,
 }) => {
+  const {
+    mode,
+    setMode,
+    commandBuffer,
+    commandError,
+    searchQuery,
+    searchResults,
+    selectedSearchIndex,
+    showHelp,
+    setShowHelp,
+  } = useNavigation()
+
   return (
     // Outer container - centers the terminal
-    <div 
+    <div
       className="min-h-screen w-screen flex items-center justify-center p-4 md:p-8"
       style={{ backgroundColor: 'var(--crust)' }}
     >
       {/* Terminal window */}
-      <div 
-        className="flex flex-col w-full max-w-4xl h-[80vh] rounded-lg overflow-hidden shadow-2xl"
-        style={{ 
+      <div
+        className="relative flex flex-col w-[50vw] min-w-[600px] h-[80vh] rounded-lg overflow-hidden shadow-2xl"
+        style={{
           backgroundColor: 'var(--background)',
           border: '1px solid var(--surface0)',
         }}
@@ -39,9 +53,12 @@ export const Terminal: FC<TerminalProps> = ({
         <TitleBar title={title} />
 
         {/* Main content area */}
-        <div className="flex-1 overflow-hidden">
-          {children}
-        </div>
+        <div className="flex-1 overflow-hidden">{children}</div>
+
+        {/* Command line (shown in COMMAND mode) */}
+        {mode === 'COMMAND' && (
+          <CommandLine buffer={commandBuffer} error={commandError} />
+        )}
 
         {/* Vim-style status line */}
         <StatusLine
@@ -51,6 +68,19 @@ export const Terminal: FC<TerminalProps> = ({
           line={line}
           col={col}
         />
+
+        {/* Help overlay */}
+        {showHelp && <HelpOverlay onClose={() => setShowHelp(false)} />}
+
+        {/* Search overlay */}
+        {mode === 'SEARCH' && (
+          <SearchOverlay
+            query={searchQuery}
+            results={searchResults}
+            selectedIndex={selectedSearchIndex}
+            onClose={() => setMode('NORMAL')}
+          />
+        )}
       </div>
     </div>
   )

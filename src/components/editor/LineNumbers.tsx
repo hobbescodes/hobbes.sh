@@ -4,23 +4,23 @@ interface LineNumbersProps {
   count: number
   currentLine?: number
   startLine?: number
+  relative?: boolean
 }
 
 export const LineNumbers: FC<LineNumbersProps> = ({
   count,
   currentLine = 1,
   startLine = 1,
+  relative = true,
 }) => {
   // Calculate the width needed for line numbers
   const maxLineNumber = startLine + count - 1
   const width = Math.max(String(maxLineNumber).length, 3)
 
   return (
-    <div 
-      className="flex flex-col text-right select-none border-r border-[var(--surface0)]"
-      style={{ 
-        backgroundColor: 'var(--surface0)', 
-        opacity: 0.3,
+    <div
+      className="flex flex-col text-right select-none shrink-0"
+      style={{
         minWidth: `${width + 3}ch`,
       }}
     >
@@ -28,17 +28,23 @@ export const LineNumbers: FC<LineNumbersProps> = ({
         const lineNumber = startLine + i
         const isCurrentLine = lineNumber === currentLine
         
+        // Show absolute line number for current line, relative offset for others
+        const displayNumber = relative
+          ? isCurrentLine
+            ? lineNumber
+            : Math.abs(lineNumber - currentLine)
+          : lineNumber
+
         return (
           <div
             key={lineNumber}
             className="px-3 leading-[1.6]"
             style={{
-              color: isCurrentLine ? 'var(--lavender)' : 'var(--overlay1)',
+              color: isCurrentLine ? 'var(--lavender)' : 'var(--overlay0)',
               fontWeight: isCurrentLine ? 'bold' : 'normal',
-              backgroundColor: isCurrentLine ? 'var(--surface1)' : 'transparent',
             }}
           >
-            {lineNumber}
+            {displayNumber}
           </div>
         )
       })}

@@ -1,4 +1,10 @@
-import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router'
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRoute,
+} from '@tanstack/react-router'
+import { NavigationProvider } from '@/context/NavigationContext'
 
 import appCss from '../styles.css?url'
 
@@ -17,7 +23,8 @@ export const Route = createRootRoute({
       },
       {
         name: 'description',
-        content: 'Software engineer and tiger enthusiast. Building things on the internet.',
+        content:
+          'Software engineer and tiger enthusiast. Building things on the internet.',
       },
     ],
     links: [
@@ -42,7 +49,9 @@ function RootComponent() {
         <HeadContent />
       </head>
       <body>
-        <Outlet />
+        <NavigationProvider>
+          <Outlet />
+        </NavigationProvider>
         <Scripts />
       </body>
     </html>
