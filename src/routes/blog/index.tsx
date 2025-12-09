@@ -9,8 +9,8 @@ import type { RouteEntry } from '@/types'
 
 export const Route = createFileRoute('/blog/')({
   component: BlogPage,
-  loader: async () => {
-    const posts = await getAllBlogPosts()
+  loader: () => {
+    const posts = getAllBlogPosts()
     return { posts }
   },
   validateSearch: (search: Record<string, unknown>): { from?: string } => ({

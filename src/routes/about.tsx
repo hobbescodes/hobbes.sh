@@ -7,8 +7,8 @@ import { loadPageContent } from '@/lib/content'
 
 export const Route = createFileRoute('/about')({
   component: AboutPage,
-  loader: async () => {
-    const content = await loadPageContent({ data: 'about.md' })
+  loader: () => {
+    const content = loadPageContent('about.md')
     return { content }
   },
 })

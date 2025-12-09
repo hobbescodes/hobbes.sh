@@ -8,8 +8,8 @@ import { useBufferNavigation } from '@/hooks/useBufferNavigation'
 
 export const Route = createFileRoute('/blog/$slug')({
   component: BlogPostPage,
-  loader: async ({ params }) => {
-    const post = await loadBlogPost({ data: params.slug })
+  loader: ({ params }) => {
+    const post = loadBlogPost(params.slug)
     if (!post) {
       throw notFound()
     }
