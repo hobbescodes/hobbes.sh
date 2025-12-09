@@ -5,6 +5,7 @@ import {
   createRootRoute,
 } from "@tanstack/react-router";
 
+import { NotFound } from "@/components/NotFound";
 import { NavigationProvider } from "@/context/NavigationContext";
 import ThemeProvider from "@/context/ThemeContext";
 import { getTheme } from "@/server/functions/theme";
@@ -15,6 +16,7 @@ export const Route = createRootRoute({
     const theme = await getTheme();
     return { theme };
   },
+  notFoundComponent: NotFound,
   head: () => ({
     meta: [
       {

@@ -1,31 +1,32 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { Buffer } from "@/components/editor/Buffer";
 import { BufferLine } from "@/components/editor/BufferLine";
+import { NotFound } from "@/components/NotFound";
 import { Terminal } from "@/components/terminal/Terminal";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { getProjectBySlug } from "@/lib/projects";
 
 export const Route = createFileRoute("/projects/$slug")({
   component: ProjectPage,
+  loader: ({ params }) => {
+    const project = getProjectBySlug(params.slug);
+    if (!project) {
+      throw notFound();
+    }
+    return { project };
+  },
+  notFoundComponent: NotFound,
 });
 
 function ProjectPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
-  const project = getProjectBySlug(slug);
+  const { project } = Route.useLoaderData();
 
   // Build content array - memoized since it depends on project
   const content = useMemo(() => {
-    if (!project) {
-      return [
-        "# 404 - Project Not Found",
-        "",
-        `Could not find project: ${slug}`,
-        "",
-      ];
-    }
     return [
       `# ${project.name}`,
       "",
@@ -51,7 +52,7 @@ function ProjectPage() {
       ...(project.homepage ? [`  Homepage:    ${project.homepage}`] : []),
       "",
     ];
-  }, [project, slug]);
+  }, [project]);
 
   const { currentLine, setCurrentLine, getLineProps } = useBufferNavigation({
     content,

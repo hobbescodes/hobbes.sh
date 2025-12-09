@@ -188,7 +188,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
       targetPath = targetPath.replace(/\.md$/, "");
       // Ensure leading slash
       if (!targetPath.startsWith("/")) {
-        targetPath = "/" + targetPath;
+        targetPath = `/${targetPath}`;
       }
       // Remove trailing slash for files
       if (targetPath !== "/" && targetPath.endsWith("/")) {

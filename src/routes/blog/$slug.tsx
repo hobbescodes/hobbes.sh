@@ -2,6 +2,7 @@ import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
 import { Buffer } from "@/components/editor/Buffer";
+import { NotFound } from "@/components/NotFound";
 import { Terminal } from "@/components/terminal/Terminal";
 import { SyntaxHighlight } from "@/components/ui/SyntaxHighlight";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
@@ -16,58 +17,8 @@ export const Route = createFileRoute("/blog/$slug")({
     }
     return { post };
   },
-  notFoundComponent: NotFoundPage,
+  notFoundComponent: NotFound,
 });
-
-function NotFoundPage() {
-  const navigate = useNavigate();
-
-  const content = useMemo(
-    () => [
-      "# Post Not Found",
-      "",
-      "The blog post you're looking for doesn't exist.",
-      "",
-    ],
-    [],
-  );
-
-  const { currentLine, setCurrentLine, getLineProps } = useBufferNavigation({
-    content,
-    onNavigateBack: () => navigate({ to: "/blog", search: {} }),
-  });
-
-  const handleLineDoubleClick = (lineNumber: number) => {
-    const lineProps = getLineProps(lineNumber - 1);
-    if (lineProps.url) {
-      window.open(lineProps.url, "_blank", "noopener,noreferrer");
-    }
-  };
-
-  return (
-    <Terminal
-      title="👻 ~/hobbescodes/blog/404.md"
-      filepath="~/hobbescodes/blog/404.md"
-      filetype="markdown"
-      line={currentLine}
-      col={1}
-    >
-      <Buffer
-        lineCount={10}
-        currentLine={currentLine}
-        contentLineCount={content.length}
-        onLineClick={setCurrentLine}
-        onLineDoubleClick={handleLineDoubleClick}
-      >
-        <SyntaxHighlight
-          content={content}
-          filetype="markdown"
-          getLineProps={getLineProps}
-        />
-      </Buffer>
-    </Terminal>
-  );
-}
 
 function BlogPostPage() {
   const navigate = useNavigate();

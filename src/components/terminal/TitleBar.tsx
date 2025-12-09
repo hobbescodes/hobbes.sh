@@ -45,7 +45,7 @@ function parseTitle(title: string): {
 
     // Build route from path segments (e.g., "blog" -> "/blog", "projects" -> "/projects")
     const routeParts = parts.slice(1, index + 1);
-    const route = "/" + routeParts.join("/");
+    const route = `/${routeParts.join("/")}`;
 
     return { name: part, route };
   });
