@@ -10,6 +10,10 @@ interface UseBufferNavigationOptions {
   initialLine?: number;
   /** Handler for navigating back (- key) */
   onNavigateBack: () => void;
+  /** Custom handler for Enter key on link lines. If provided, replaces default window.open behavior. */
+  onLinkEnter?: (url: string) => void;
+  /** Whether keyboard navigation is enabled (default: true). Useful for multi-pane setups. */
+  enabled?: boolean;
 }
 
 interface LineProps {
@@ -40,6 +44,8 @@ export function useBufferNavigation({
   content,
   initialLine = 1,
   onNavigateBack,
+  onLinkEnter,
+  enabled = true,
 }: UseBufferNavigationOptions): UseBufferNavigationReturn {
   const { mode, getCount, setCountBuffer } = useNavigation();
   const [currentLineRaw, setCurrentLineRaw] = useState(initialLine);
@@ -90,8 +96,9 @@ export function useBufferNavigation({
   // Handle keyboard navigation
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      // Don't handle if in input or not in NORMAL mode
+      // Don't handle if disabled, in input, or not in NORMAL mode
       if (
+        !enabled ||
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement ||
         mode !== "NORMAL"
@@ -117,10 +124,15 @@ export function useBufferNavigation({
           break;
         }
         case "Enter": {
-          // Open link if current line has one
+          // Handle link if current line has one
           if (currentLineUrl) {
             e.preventDefault();
-            openUrl(currentLineUrl);
+            // Use custom handler if provided, otherwise open URL
+            if (onLinkEnter) {
+              onLinkEnter(currentLineUrl);
+            } else {
+              openUrl(currentLineUrl);
+            }
           }
           break;
         }
@@ -132,11 +144,13 @@ export function useBufferNavigation({
       }
     },
     [
+      enabled,
       mode,
       getCount,
       setCountBuffer,
       setCurrentLine,
       currentLineUrl,
+      onLinkEnter,
       openUrl,
       onNavigateBack,
     ],
@@ -144,14 +158,16 @@ export function useBufferNavigation({
 
   // Listen for gx-execute event from NavigationContext
   const handleGxExecute = useCallback(() => {
+    if (!enabled) return;
     if (currentLineUrl) {
       openUrl(currentLineUrl);
     }
-  }, [currentLineUrl, openUrl]);
+  }, [enabled, currentLineUrl, openUrl]);
 
   // Listen for scroll-half-page event from NavigationContext (Ctrl+d/u)
   const handleScrollHalfPage = useCallback(
     (e: Event) => {
+      if (!enabled) return;
       const { direction, lines } = (
         e as CustomEvent<{ direction: "down" | "up"; lines: number }>
       ).detail;
@@ -162,7 +178,7 @@ export function useBufferNavigation({
         setCurrentLine((prev) => prev - lines - 1);
       }
     },
-    [setCurrentLine],
+    [enabled, setCurrentLine],
   );
 
   // Set up event listeners

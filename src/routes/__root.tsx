@@ -7,6 +7,7 @@ import {
 
 import { NotFound } from "@/components/NotFound";
 import { NavigationProvider } from "@/context/NavigationContext";
+import { PaneProvider } from "@/context/PaneContext";
 import ThemeProvider from "@/context/ThemeContext";
 import { seo } from "@/lib/seo";
 import { getTheme } from "@/server/functions/theme";
@@ -48,7 +49,9 @@ function RootComponent() {
       <body>
         <ThemeProvider theme={theme}>
           <NavigationProvider>
-            <Outlet />
+            <PaneProvider>
+              <Outlet />
+            </PaneProvider>
           </NavigationProvider>
         </ThemeProvider>
         <Scripts />
