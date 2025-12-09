@@ -4,11 +4,82 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Catppuccin Mocha Color Palette with Ghostty Overrides */
+/* Light theme (Catppuccin Latte) - base */
 :root {
+  /* Custom overrides for light */
+  --background: #eff1f5;
+  --cursor: #7287fd;
+
+  /* Terminal-specific backgrounds */
+  --terminal-bg: rgba(239, 241, 245, 0.85);
+  --wallpaper-overlay: rgba(172, 199, 242, 0.75);
+
+  /* Catppuccin Latte Base Colors */
+  --base: #eff1f5;
+  --mantle: #e6e9ef;
+  --crust: #dce0e8;
+
+  /* Surfaces */
+  --surface0: #ccd0da;
+  --surface1: #bcc0cc;
+  --surface2: #acb0be;
+
+  /* Overlays */
+  --overlay0: #9ca0b0;
+  --overlay1: #8c8fa1;
+  --overlay2: #7c7f93;
+
+  /* Text */
+  --subtext0: #6c6f85;
+  --subtext1: #5c5f77;
+  --text: #4c4f69;
+
+  /* Accent Colors (Latte) */
+  --rosewater: #dc8a78;
+  --flamingo: #dd7878;
+  --pink: #ea76cb;
+  --mauve: #8839ef;
+  --red: #d20f39;
+  --maroon: #e64553;
+  --peach: #fe640b;
+  --yellow: #df8e1d;
+  --green: #40a02b;
+  --teal: #179299;
+  --sky: #04a5e5;
+  --sapphire: #209fb5;
+  --blue: #1e66f5;
+  --lavender: #7287fd;
+
+  /* shadcn/ui compatibility - mapped to Catppuccin */
+  --radius: 0.5rem;
+  --foreground: var(--text);
+  --card: var(--base);
+  --card-foreground: var(--text);
+  --popover: var(--surface0);
+  --popover-foreground: var(--text);
+  --primary: var(--blue);
+  --primary-foreground: var(--crust);
+  --secondary: var(--surface0);
+  --secondary-foreground: var(--text);
+  --muted: var(--surface0);
+  --muted-foreground: var(--subtext0);
+  --accent: var(--surface1);
+  --accent-foreground: var(--text);
+  --destructive: var(--red);
+  --border: var(--surface1);
+  --input: var(--surface0);
+  --ring: var(--lavender);
+}
+
+/* Dark theme (Catppuccin Mocha) */
+.dark {
   /* Custom Ghostty overrides */
   --background: #08071c;
   --cursor: #7aa2f7;
+
+  /* Terminal-specific backgrounds */
+  --terminal-bg: rgba(8, 7, 28, 0.80);
+  --wallpaper-overlay: rgba(17, 17, 27, 0.9);
 
   /* Catppuccin Mocha Base Colors */
   --base: #1e1e2e;
@@ -30,7 +101,7 @@
   --subtext1: #bac2de;
   --text: #cdd6f4;
 
-  /* Accent Colors */
+  /* Accent Colors (Mocha) */
   --rosewater: #f5e0dc;
   --flamingo: #f2cdcd;
   --pink: #f5c2e7;
@@ -45,26 +116,6 @@
   --sapphire: #74c7ec;
   --blue: #89b4fa;
   --lavender: #b4befe;
-
-  /* shadcn/ui compatibility - mapped to Catppuccin */
-  --radius: 0.5rem;
-  --foreground: var(--text);
-  --card: var(--base);
-  --card-foreground: var(--text);
-  --popover: var(--surface0);
-  --popover-foreground: var(--text);
-  --primary: var(--blue);
-  --primary-foreground: var(--crust);
-  --secondary: var(--surface0);
-  --secondary-foreground: var(--text);
-  --muted: var(--surface0);
-  --muted-foreground: var(--subtext0);
-  --accent: var(--surface1);
-  --accent-foreground: var(--text);
-  --destructive: var(--red);
-  --border: var(--surface1);
-  --input: var(--surface0);
-  --ring: var(--lavender);
 }
 
 /* Base styles */

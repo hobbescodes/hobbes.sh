@@ -222,6 +222,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
       } else {
         setCommandError(`E32: Can't find file "${pathArg}"`)
       }
+    } else if (cmdLower === 'flashbang') {
+      window.dispatchEvent(new CustomEvent('flashbang-toggle'))
+      setMode('NORMAL')
     } else {
       setCommandError(`Unknown command: ${cmd}`)
     }

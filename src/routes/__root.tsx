@@ -5,10 +5,16 @@ import {
   createRootRoute,
 } from '@tanstack/react-router'
 import { NavigationProvider } from '@/context/NavigationContext'
+import ThemeProvider from '@/context/ThemeContext'
+import { getTheme } from '@/server/functions/theme'
 
 import appCss from '../styles.css?url'
 
 export const Route = createRootRoute({
+  beforeLoad: async () => {
+    const theme = await getTheme()
+    return { theme }
+  },
   head: () => ({
     meta: [
       {
@@ -43,15 +49,19 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+  const { theme } = Route.useRouteContext()
+
   return (
-    <html lang="en">
+    <html lang="en" className={theme}>
       <head>
         <HeadContent />
       </head>
       <body>
-        <NavigationProvider>
-          <Outlet />
-        </NavigationProvider>
+        <ThemeProvider theme={theme}>
+          <NavigationProvider>
+            <Outlet />
+          </NavigationProvider>
+        </ThemeProvider>
         <Scripts />
       </body>
     </html>

@@ -48,17 +48,17 @@ export const Terminal: FC<TerminalProps> = ({
 				backgroundRepeat: "no-repeat",
 			}}
 		>
-			{/* Semi-transparent overlay to dim wallpaper */}
+			{/* Semi-transparent overlay for wallpaper */}
 			<div
 				className="absolute inset-0"
-				style={{ backgroundColor: "rgba(17, 17, 27, 0.9)" }}
+				style={{ backgroundColor: "var(--wallpaper-overlay)" }}
 			/>
 
 			{/* Terminal window */}
 			<div
 				className="relative z-10 flex flex-col w-[70vw] min-w-[600px] h-[80vh] rounded-lg overflow-hidden shadow-2xl"
 				style={{
-					backgroundColor: "rgba(8, 7, 28, 0.80)",
+					backgroundColor: "var(--terminal-bg)",
 					border: "1px solid var(--surface0)",
 				}}
 			>
