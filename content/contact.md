@@ -11,7 +11,7 @@ LinkedIn https://www.linkedin.com/in/jakobhauble/
 ## Timezone
 
 UTC-6 (Central Time)
-Usually available 9am - 6pm CT
+Usually available 9am - 6pm CST
 
 ## Availability
 
