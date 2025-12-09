@@ -48,7 +48,7 @@ export const PaneProvider: FC<PaneProviderProps> = ({ children }) => {
   const openPreview = useCallback((url?: string) => {
     setPreviewUrl(url);
     setIsPreviewOpen(true);
-    // Keep focus on left pane when opening
+    setActivePaneInternal("right"); // Focus preview pane when opening
   }, []);
 
   // Close preview pane
@@ -121,8 +121,11 @@ export const PaneProvider: FC<PaneProviderProps> = ({ children }) => {
             setActivePane("left");
             break;
           case "x":
-            e.preventDefault();
-            closePreview();
+            // Only close preview when right pane is active
+            if (activePane === "right") {
+              e.preventDefault();
+              closePreview();
+            }
             break;
         }
 
@@ -139,7 +142,7 @@ export const PaneProvider: FC<PaneProviderProps> = ({ children }) => {
         clearTimeout(leaderTimeoutRef.current);
       }
     };
-  }, [leaderActive, activateLeader, setActivePane, closePreview]);
+  }, [leaderActive, activateLeader, setActivePane, closePreview, activePane]);
 
   const value: PaneContextValue = {
     isPreviewOpen,
