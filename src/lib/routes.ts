@@ -9,6 +9,7 @@ export const routeTree: RouteEntry = {
   type: "directory",
   path: "/",
   children: [
+    { name: "home", displayName: "home.md", type: "file", path: "/" },
     { name: "about", displayName: "about.md", type: "file", path: "/about" },
     {
       name: "contact",
