@@ -71,7 +71,6 @@ function ProjectPage() {
       "## Links",
       "",
       `  Repository:  ${project.url}`,
-      ...(project.homepage ? [`  Homepage:    ${project.homepage}`] : []),
       "",
     ];
   }, [project]);

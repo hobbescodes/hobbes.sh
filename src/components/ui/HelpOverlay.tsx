@@ -32,10 +32,10 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
           Help
         </div>
 
-        {/* Content */}
+        {/* Content - 2x2 Grid */}
         <div className="p-6">
-          <div className="grid grid-cols-3 gap-6 text-sm">
-            {/* Navigation Column */}
+          <div className="grid grid-cols-2 gap-x-8 gap-y-6 text-sm">
+            {/* Navigation Section */}
             <div>
               <h3
                 className="mb-3 pb-1 font-bold"
@@ -58,7 +58,7 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Modes Column */}
+            {/* Modes Section */}
             <div>
               <h3
                 className="mb-3 pb-1 font-bold"
@@ -70,14 +70,14 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                 Modes
               </h3>
               <div className="space-y-2">
-                <KeyBinding keys=":" description="Command" />
-                <KeyBinding keys="/" description="Search" />
+                <KeyBinding keys=":" description="Command mode" />
+                <KeyBinding keys="/" description="Search mode" />
                 <KeyBinding keys="?" description="Help" />
-                <KeyBinding keys="Esc" description="Normal" />
+                <KeyBinding keys="Esc" description="Normal mode" />
               </div>
             </div>
 
-            {/* Commands Column */}
+            {/* Commands Section */}
             <div>
               <h3
                 className="mb-3 pb-1 font-bold"
@@ -92,6 +92,25 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                 <KeyBinding keys=":q" description="Go home" />
                 <KeyBinding keys=":e <path>" description="Open file" />
                 <KeyBinding keys=":help" description="Show help" />
+              </div>
+            </div>
+
+            {/* Projects Section (Split Panes) */}
+            <div>
+              <h3
+                className="mb-3 pb-1 font-bold"
+                style={{
+                  color: "var(--peach)",
+                  borderBottom: "1px solid var(--surface1)",
+                }}
+              >
+                Projects
+              </h3>
+              <div className="space-y-2">
+                <KeyBinding keys="Enter" description="Open preview" />
+                <KeyBinding keys="^a l" description="Focus preview" />
+                <KeyBinding keys="^a h" description="Focus content" />
+                <KeyBinding keys="^a x" description="Close preview" />
               </div>
             </div>
           </div>

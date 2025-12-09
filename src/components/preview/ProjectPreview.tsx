@@ -67,9 +67,7 @@ export const ProjectPreview: FC<ProjectPreviewProps> = ({ project }) => {
           )}
 
           <div className="text-xs" style={{ color: "var(--subtext0)" }}>
-            {project.homepage
-              ? "Live preview coming soon..."
-              : "No homepage URL available"}
+            GitHub preview coming soon...
           </div>
         </div>
 

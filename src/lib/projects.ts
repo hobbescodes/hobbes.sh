@@ -7,7 +7,6 @@ export interface Project {
   name: string;
   description: string;
   url: string;
-  homepage?: string;
   language: string;
   stars: number;
   forks: number;
@@ -25,7 +24,6 @@ export const projects: Project[] = [
     description:
       "A terminal-inspired personal website built with TanStack Start",
     url: "https://github.com/hobbescodes/terminal-website",
-    homepage: "https://hobbescodes.dev",
     language: "TypeScript",
     stars: 42,
     forks: 5,
