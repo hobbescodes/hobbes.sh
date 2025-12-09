@@ -277,6 +277,13 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
             setCountBuffer('') // Clear count on escape
             setShowHelp(false)
             break
+          case 'Backspace':
+            // Handle backspace when in count buffer mode
+            if (countBuffer.length > 0) {
+              e.preventDefault()
+              setCountBuffer((prev) => prev.slice(0, -1))
+            }
+            break
         }
       } else if (mode === 'COMMAND') {
         switch (e.key) {
