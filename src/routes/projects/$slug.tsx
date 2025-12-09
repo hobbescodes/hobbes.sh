@@ -86,7 +86,12 @@ function ProjectPage() {
           {content.map((line, i) => {
             const { isSelected, hasLink } = getLineProps(i);
             return (
-              <BufferLine key={i} isSelected={isSelected} hasLink={hasLink}>
+              <BufferLine
+                // biome-ignore lint/suspicious/noArrayIndexKey: content lines are static and don't reorder
+                key={i}
+                isSelected={isSelected}
+                hasLink={hasLink}
+              >
                 <span
                   style={{
                     color: line.startsWith("# ")

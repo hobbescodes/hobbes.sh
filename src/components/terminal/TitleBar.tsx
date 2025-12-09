@@ -90,11 +90,11 @@ export const TitleBar: FC<TitleBarProps> = ({ title }) => {
           <>
             {prefix}
             {segments.map((segment, index) => (
-              <span key={index}>
+              <span key={segment.name}>
                 {index > 0 && "/"}
                 {segment.route ? (
                   <span
-                    onClick={() => handleSegmentClick(segment.route!)}
+                    onClick={() => handleSegmentClick(segment.route)}
                     className="underline"
                     style={{ cursor: "pointer" }}
                   >

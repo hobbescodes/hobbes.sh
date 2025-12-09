@@ -5,5 +5,3 @@ export const notFoundAscii = String.raw`  _  _    ___  _  _
  |__   _| | | |__   _|
     | | | |_| |  | |  
     |_|  \___/   |_|  `;
-
-export const notFoundAsciiLines = notFoundAscii.split("\n");

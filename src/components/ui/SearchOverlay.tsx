@@ -386,6 +386,7 @@ const BlogPreview: FC<{ preview: BlogPreviewData }> = ({ preview }) => (
     >
       {preview.preview.map((line, i) => (
         <div
+          // biome-ignore lint/suspicious/noArrayIndexKey: static preview lines don't reorder
           key={i}
           style={{
             color: line.startsWith("##") ? "var(--peach)" : undefined,

@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-import type { FC, ReactNode } from "react";
+import type { FC } from "react";
 
 interface LineProps {
   isSelected: boolean;
@@ -386,6 +386,7 @@ const CodeLine: FC<CodeLineProps> = ({ content, language }) => {
   return (
     <>
       {tokens.map((token, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: tokens are derived from content and don't reorder
         <span key={i} style={{ color: token.color }}>
           {token.text}
         </span>
@@ -596,18 +597,3 @@ function tokenizeLine(line: string, language: string): Token[] {
 
   return tokens;
 }
-
-/**
- * Inline code renderer - for `code` within text
- */
-export const InlineCode: FC<{ children: ReactNode }> = ({ children }) => (
-  <span
-    className="rounded px-1 py-0.5 font-mono text-sm"
-    style={{
-      backgroundColor: "var(--surface0)",
-      color: "var(--pink)",
-    }}
-  >
-    {children}
-  </span>
-);

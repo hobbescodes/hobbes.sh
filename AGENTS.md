@@ -623,6 +623,27 @@ useEffect(() => {
 }, [dependencies])
 ```
 
+### Biome Lint Suppressions
+
+When suppressing Biome lint rules, place the `biome-ignore` comment directly above the line containing the issue:
+
+```tsx
+// For JSX props, place comment directly above the prop
+<BufferLine
+  // biome-ignore lint/suspicious/noArrayIndexKey: static content doesn't reorder
+  key={i}
+  isSelected={isSelected}
+>
+
+// For JSX elements, place comment directly above the element
+{items.map((item, i) => (
+  // biome-ignore lint/suspicious/noArrayIndexKey: static list doesn't reorder
+  <span key={i}>{item}</span>
+))}
+```
+
+Note: `{/* */}` style comments do NOT work for biome-ignore in JSX - use `//` comments instead.
+
 ---
 
 ## shadcn/ui Integration
@@ -662,6 +683,7 @@ bun preview    # Preview production build
 bun test       # Run tests
 bun check      # Run Biome linting and formatting checks
 bun check:fix  # Auto-fix linting and formatting issues
+bun knip       # Find unused files, exports, and dependencies
 ```
 
 ---
@@ -678,3 +700,5 @@ bun check:fix  # Auto-fix linting and formatting issues
 8. **Oil navigation uses j/k/Enter/-** - these are non-negotiable keybindings
 9. **Add shadcn components incrementally** via `bunx shadcn@latest add <component>`
 10. **ASCII banner is "HobbesCodes"** - tiger/developer persona
+11. **Run `bun check` after completing changes** to catch linting and formatting issues. Run `bun check:fix` to auto-fix issues.
+12. **Run `bun knip` after completing changes** to ensure no unused code, exports, or dependencies were left behind. Use `/** @knipignore */` JSDoc tag to suppress false positives when necessary.

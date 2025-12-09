@@ -46,6 +46,7 @@ const ThemeProvider = ({
   );
 };
 
+/** @knipignore */
 export const useTheme = () => {
   const val = use(ThemeContext);
   if (!val) throw new Error("`useTheme` called outside of `<ThemeProvider />`");
