@@ -8,6 +8,8 @@ interface BufferProps {
   showLineNumbers?: boolean
   startLine?: number
   className?: string
+  /** Number of lines with actual content. Lines beyond this show ~ */
+  contentLineCount?: number
 }
 
 export const Buffer: FC<BufferProps> = ({
@@ -17,6 +19,7 @@ export const Buffer: FC<BufferProps> = ({
   showLineNumbers = true,
   startLine = 1,
   className = '',
+  contentLineCount,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
@@ -61,6 +64,7 @@ export const Buffer: FC<BufferProps> = ({
           count={lineCount}
           currentLine={currentLine}
           startLine={startLine}
+          contentLineCount={contentLineCount}
         />
       )}
       <div

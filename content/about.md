@@ -43,8 +43,7 @@ spending way too much time perfecting my terminal setup.
 
 ## Fun Facts
 
-- My online persona is a tiger because I was obsessed with Tigger when I was
-  growing up
+- I love tigers. From Tigger to Hobbes (Calvin and Hobbes), they are the best.
 - I love in keyboard-driven workflows
 
 ## Philosophy

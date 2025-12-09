@@ -23,6 +23,89 @@ interface LineStyle {
 }
 
 /**
+ * Callout types with their associated colors (GitHub-style)
+ * Maps to Catppuccin palette colors
+ */
+const CALLOUT_TYPES = {
+  NOTE: {
+    color: 'var(--blue)',
+    bgColor: 'rgba(137, 180, 250, 0.1)', // blue with transparency
+    icon: '',
+  },
+  TIP: {
+    color: 'var(--green)',
+    bgColor: 'rgba(166, 227, 161, 0.1)', // green with transparency
+    icon: '',
+  },
+  IMPORTANT: {
+    color: 'var(--mauve)',
+    bgColor: 'rgba(203, 166, 247, 0.1)', // mauve with transparency
+    icon: '',
+  },
+  WARNING: {
+    color: 'var(--yellow)',
+    bgColor: 'rgba(249, 226, 175, 0.1)', // yellow with transparency
+    icon: '',
+  },
+  CAUTION: {
+    color: 'var(--red)',
+    bgColor: 'rgba(243, 139, 168, 0.1)', // red with transparency
+    icon: '',
+  },
+} as const
+
+type CalloutType = keyof typeof CALLOUT_TYPES
+
+/**
+ * Check if a line is a callout line (starts with ">")
+ * Returns the content without the ">" prefix if it is
+ */
+function parseCalloutLine(line: string): { isCalloutLine: boolean; content: string } {
+  if (line.startsWith('> ')) {
+    return { isCalloutLine: true, content: line.slice(2) }
+  }
+  if (line === '>') {
+    return { isCalloutLine: true, content: '' }
+  }
+  return { isCalloutLine: false, content: line }
+}
+
+/**
+ * Check if a line starts a callout block (e.g., "> [!NOTE]" or "> NOTE:")
+ * Supports both GitHub style [!TYPE] and simple TYPE: format
+ */
+function getCalloutType(content: string): CalloutType | null {
+  const trimmed = content.trim()
+  for (const type of Object.keys(CALLOUT_TYPES) as CalloutType[]) {
+    // GitHub style: [!NOTE], [!WARNING], etc.
+    if (trimmed.startsWith(`[!${type}]`)) {
+      return type
+    }
+    // Simple style: NOTE:, WARNING:, etc.
+    if (trimmed.startsWith(`${type}:`) || trimmed === type) {
+      return type
+    }
+  }
+  return null
+}
+
+/**
+ * Strip the callout type prefix from content for display
+ */
+function stripCalloutPrefix(content: string, type: CalloutType): string {
+  const trimmed = content.trim()
+  // GitHub style: [!NOTE] rest of content
+  if (trimmed.startsWith(`[!${type}]`)) {
+    return trimmed.slice(`[!${type}]`.length).trim()
+  }
+  // Simple style: NOTE: rest of content
+  if (trimmed.startsWith(`${type}:`)) {
+    return trimmed.slice(`${type}:`.length).trim()
+  }
+  return content
+}
+
+/**
  * Highlights and renders content with vim/catppuccin-style syntax highlighting
  */
 export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
@@ -33,6 +116,7 @@ export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
   const renderedLines = useMemo(() => {
     let inCodeBlock = false
     let codeLanguage = ''
+    let currentCallout: CalloutType | null = null
 
     return content.map((line, index) => {
       // Check for code block start/end
@@ -40,6 +124,7 @@ export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
         if (!inCodeBlock) {
           inCodeBlock = true
           codeLanguage = line.slice(3).trim()
+          currentCallout = null // End any callout when entering code block
           return {
             key: index,
             content: line,
@@ -69,6 +154,58 @@ export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
         }
       }
 
+      // Check for callout lines (must start with ">")
+      const { isCalloutLine, content: lineContent } = parseCalloutLine(line)
+      
+      if (isCalloutLine) {
+        // Check if this line starts a new callout block
+        const calloutType = getCalloutType(lineContent)
+        if (calloutType) {
+          currentCallout = calloutType
+          const calloutConfig = CALLOUT_TYPES[calloutType]
+          const displayContent = stripCalloutPrefix(lineContent, calloutType)
+          return {
+            key: index,
+            content: displayContent,
+            style: { 
+              color: calloutConfig.color, 
+              fontWeight: 'bold' as const,
+              backgroundColor: calloutConfig.bgColor,
+            },
+            isCallout: true,
+            calloutType: calloutType,
+            isCalloutStart: true,
+          }
+        }
+        
+        // Continue existing callout block
+        if (currentCallout) {
+          const calloutConfig = CALLOUT_TYPES[currentCallout]
+          return {
+            key: index,
+            content: lineContent,
+            style: { 
+              color: calloutConfig.color,
+              backgroundColor: calloutConfig.bgColor,
+            },
+            isCallout: true,
+            calloutType: currentCallout,
+            isCalloutStart: false,
+          }
+        }
+        
+        // Regular blockquote (no active callout type)
+        return {
+          key: index,
+          content: lineContent,
+          style: { color: 'var(--overlay1)', fontStyle: 'italic' as const },
+          isCodeBlock: false,
+        }
+      }
+      
+      // Non-callout line ends any active callout
+      currentCallout = null
+
       // Regular markdown content
       return {
         key: index,
@@ -84,6 +221,38 @@ export const SyntaxHighlight: FC<SyntaxHighlightProps> = ({
       {renderedLines.map((line) => {
         const lineProps = getLineProps?.(line.key)
         const isSelectedWithLink = lineProps?.isSelected && lineProps?.hasLink
+
+        // Callout styling
+        if (line.isCallout && line.calloutType) {
+          const calloutType = line.calloutType as CalloutType
+          const calloutConfig = CALLOUT_TYPES[calloutType]
+          return (
+            <div
+              key={line.key}
+              style={{
+                ...line.style,
+                borderLeft: `3px solid ${calloutConfig.color}`,
+                paddingLeft: '0.5rem',
+                marginLeft: '-0.625rem',
+              }}
+            >
+              {line.isCalloutStart ? (
+                <>
+                  {calloutConfig.icon && <span style={{ marginRight: '0.5rem' }}>{calloutConfig.icon}</span>}
+                  <span style={{ fontWeight: 'bold' }}>{calloutType}</span>
+                  {line.content && (
+                    <>
+                      <span style={{ fontWeight: 'normal' }}>: </span>
+                      <span style={{ fontWeight: 'normal' }}>{line.content}</span>
+                    </>
+                  )}
+                </>
+              ) : (
+                line.content || '\u00A0'
+              )}
+            </div>
+          )
+        }
 
         return (
           <div

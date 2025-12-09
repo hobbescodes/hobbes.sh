@@ -39,7 +39,7 @@ function NotFoundPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={10} currentLine={currentLine}>
+      <Buffer lineCount={10} currentLine={currentLine} contentLineCount={content.length}>
         <SyntaxHighlight content={content} filetype="markdown" getLineProps={getLineProps} />
       </Buffer>
     </Terminal>
@@ -78,7 +78,7 @@ function BlogPostPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={allContent.length + 3} currentLine={currentLine}>
+      <Buffer lineCount={allContent.length + 3} currentLine={currentLine} contentLineCount={allContent.length}>
         <SyntaxHighlight content={allContent} filetype="markdown" getLineProps={getLineProps} />
       </Buffer>
     </Terminal>

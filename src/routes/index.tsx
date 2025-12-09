@@ -49,6 +49,8 @@ function HomePage() {
 	const currentLine = oilStartLine + 1 + selectedIndex;
 
 	const totalLines = oilStartLine + entries.length + 5;
+	// Content lines = ASCII + markdown content + oil header + entries
+	const contentLines = oilStartLine + 1 + entries.length;
 
 	return (
 		<Terminal
@@ -58,7 +60,7 @@ function HomePage() {
 			line={currentLine}
 			col={1}
 		>
-			<Buffer lineCount={totalLines} currentLine={currentLine}>
+			<Buffer lineCount={totalLines} currentLine={currentLine} contentLineCount={contentLines}>
 				{/* ASCII Art Banner */}
 				<pre className="text-[var(--mauve)] leading-[1.6]">{hobbesAscii}</pre>
 

@@ -106,7 +106,7 @@ function ProjectPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={content.length + 3} currentLine={currentLine}>
+      <Buffer lineCount={content.length + 3} currentLine={currentLine} contentLineCount={content.length}>
         <div style={{ color: 'var(--text)' }}>
           {content.map((line, i) => {
             const { isSelected, hasLink } = getLineProps(i)

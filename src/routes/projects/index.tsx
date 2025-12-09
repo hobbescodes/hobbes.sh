@@ -127,6 +127,8 @@ function ProjectsPage() {
   // Line calculation: header (1) + entries
   const currentLine = selectedIndex + 2
   const totalLines = totalItems + 5
+  // Content lines = header (1) + all entries
+  const contentLines = 1 + totalItems
 
   return (
     <Terminal
@@ -136,7 +138,7 @@ function ProjectsPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={totalLines} currentLine={currentLine}>
+      <Buffer lineCount={totalLines} currentLine={currentLine} contentLineCount={contentLines}>
         <div className="flex flex-col leading-[1.6]">
           {/* Directory header */}
           <div className="font-bold" style={{ color: 'var(--blue)' }}>

@@ -5,6 +5,8 @@ interface LineNumbersProps {
   currentLine?: number
   startLine?: number
   relative?: boolean
+  /** Number of lines with actual content. Lines beyond this show ~ */
+  contentLineCount?: number
 }
 
 export const LineNumbers: FC<LineNumbersProps> = ({
@@ -12,6 +14,7 @@ export const LineNumbers: FC<LineNumbersProps> = ({
   currentLine = 1,
   startLine = 1,
   relative = true,
+  contentLineCount,
 }) => {
   // Calculate the width needed for line numbers
   const maxLineNumber = startLine + count - 1
@@ -28,20 +31,29 @@ export const LineNumbers: FC<LineNumbersProps> = ({
         const lineNumber = startLine + i
         const isCurrentLine = lineNumber === currentLine
         
-        // Show absolute line number for current line, relative offset for others
-        const displayNumber = relative
-          ? isCurrentLine
-            ? lineNumber
-            : Math.abs(lineNumber - currentLine)
-          : lineNumber
+        // Check if this line is beyond the content (empty line)
+        const isEmptyLine = contentLineCount !== undefined && lineNumber > contentLineCount
+        
+        // Show ~ for empty lines, otherwise show line number
+        const displayNumber = isEmptyLine
+          ? '~'
+          : relative
+            ? isCurrentLine
+              ? lineNumber
+              : Math.abs(lineNumber - currentLine)
+            : lineNumber
 
         return (
           <div
             key={lineNumber}
             className="px-3 leading-[1.6]"
             style={{
-              color: isCurrentLine ? 'var(--lavender)' : 'var(--overlay0)',
-              fontWeight: isCurrentLine ? 'bold' : 'normal',
+              color: isEmptyLine
+                ? 'var(--surface2)'
+                : isCurrentLine
+                  ? 'var(--lavender)'
+                  : 'var(--overlay0)',
+              fontWeight: isCurrentLine && !isEmptyLine ? 'bold' : 'normal',
             }}
           >
             {displayNumber}

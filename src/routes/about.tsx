@@ -30,7 +30,7 @@ function AboutPage() {
       line={currentLine}
       col={1}
     >
-      <Buffer lineCount={content.length + 3} currentLine={currentLine}>
+      <Buffer lineCount={content.length + 3} currentLine={currentLine} contentLineCount={content.length}>
         <SyntaxHighlight content={content} filetype="markdown" getLineProps={getLineProps} />
       </Buffer>
     </Terminal>
