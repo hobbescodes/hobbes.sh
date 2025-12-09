@@ -7,6 +7,7 @@ import { NotFound } from "@/components/NotFound";
 import { Terminal } from "@/components/terminal/Terminal";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { getProjectBySlug } from "@/lib/projects";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/$slug")({
   component: ProjectPage,
@@ -16,6 +17,16 @@ export const Route = createFileRoute("/projects/$slug")({
       throw notFound();
     }
     return { project };
+  },
+  head: ({ loaderData }) => {
+    const { project } = loaderData;
+    const { meta, links } = seo({
+      title: project.name,
+      description: project.description,
+      url: `/projects/${project.name}`,
+      keywords: project.topics.join(", "),
+    });
+    return { meta, links };
   },
   notFoundComponent: NotFound,
 });

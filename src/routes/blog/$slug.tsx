@@ -7,6 +7,7 @@ import { Terminal } from "@/components/terminal/Terminal";
 import { SyntaxHighlight } from "@/components/ui/SyntaxHighlight";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { loadBlogPost } from "@/lib/content";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/blog/$slug")({
   component: BlogPostPage,
@@ -16,6 +17,18 @@ export const Route = createFileRoute("/blog/$slug")({
       throw notFound();
     }
     return { post };
+  },
+  head: ({ loaderData }) => {
+    const { post } = loaderData;
+    const { meta, links } = seo({
+      title: post.title,
+      description: post.description,
+      url: `/blog/${post.slug}`,
+      type: "article",
+      publishedTime: post.date,
+      tags: post.tags,
+    });
+    return { meta, links };
   },
   notFoundComponent: NotFound,
 });

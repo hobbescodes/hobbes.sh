@@ -5,12 +5,21 @@ import { Terminal } from "@/components/terminal/Terminal";
 import { SyntaxHighlight } from "@/components/ui/SyntaxHighlight";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { loadPageContent } from "@/lib/content";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
   component: ContactPage,
   loader: () => {
     const content = loadPageContent("contact.md");
     return { content };
+  },
+  head: () => {
+    const { meta, links } = seo({
+      title: "Contact",
+      description: "Get in touch with hobbescodes.",
+      url: "/contact",
+    });
+    return { meta, links };
   },
 });
 

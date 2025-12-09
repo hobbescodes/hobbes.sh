@@ -5,11 +5,20 @@ import { OilEntry } from "@/components/oil/OilEntry";
 import { Terminal } from "@/components/terminal/Terminal";
 import { useOilNavigation } from "@/hooks/useOilNavigation";
 import { getProjectRouteEntries, projects } from "@/lib/projects";
+import { seo } from "@/lib/seo";
 
 const projectEntries = getProjectRouteEntries();
 
 export const Route = createFileRoute("/projects/")({
   component: ProjectsPage,
+  head: () => {
+    const { meta, links } = seo({
+      title: "Projects",
+      description: "Open source projects and experiments by hobbescodes.",
+      url: "/projects",
+    });
+    return { meta, links };
+  },
   validateSearch: (search: Record<string, unknown>): { from?: string } => ({
     from: typeof search.from === "string" ? search.from : undefined,
   }),

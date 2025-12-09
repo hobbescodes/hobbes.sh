@@ -8,6 +8,7 @@ import {
 import { NotFound } from "@/components/NotFound";
 import { NavigationProvider } from "@/context/NavigationContext";
 import ThemeProvider from "@/context/ThemeContext";
+import { seo } from "@/lib/seo";
 import { getTheme } from "@/server/functions/theme";
 import appCss from "@/styles.css?url";
 
@@ -17,35 +18,21 @@ export const Route = createRootRoute({
     return { theme };
   },
   notFoundComponent: NotFound,
-  head: () => ({
-    meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "HobbesCodes",
-      },
-      {
-        name: "description",
-        content:
-          "Software engineer and tiger enthusiast. Building things on the internet.",
-      },
-    ],
-    links: [
-      {
-        rel: "stylesheet",
-        href: appCss,
-      },
-      {
-        rel: "icon",
-        href: "/favicon.ico",
-      },
-    ],
-  }),
+  head: () => {
+    const { meta, links } = seo({ title: "hobbescodes", url: "/" });
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        ...meta,
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", href: "/favicon.ico" },
+        ...links,
+      ],
+    };
+  },
 
   component: RootComponent,
 });

@@ -5,12 +5,22 @@ import { Terminal } from "@/components/terminal/Terminal";
 import { SyntaxHighlight } from "@/components/ui/SyntaxHighlight";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { loadPageContent } from "@/lib/content";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
   loader: () => {
     const content = loadPageContent("about.md");
     return { content };
+  },
+  head: () => {
+    const { meta, links } = seo({
+      title: "About",
+      description:
+        "Learn more about hobbescodes - software engineer and tiger enthusiast.",
+      url: "/about",
+    });
+    return { meta, links };
   },
 });
 

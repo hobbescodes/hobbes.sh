@@ -5,6 +5,7 @@ import { OilEntry } from "@/components/oil/OilEntry";
 import { Terminal } from "@/components/terminal/Terminal";
 import { useOilNavigation } from "@/hooks/useOilNavigation";
 import { getAllBlogPosts } from "@/lib/content";
+import { seo } from "@/lib/seo";
 
 import type { RouteEntry } from "@/types";
 
@@ -13,6 +14,15 @@ export const Route = createFileRoute("/blog/")({
   loader: () => {
     const posts = getAllBlogPosts();
     return { posts };
+  },
+  head: () => {
+    const { meta, links } = seo({
+      title: "Blog",
+      description:
+        "Thoughts on software engineering, tools, and the craft of building things.",
+      url: "/blog",
+    });
+    return { meta, links };
   },
   validateSearch: (search: Record<string, unknown>): { from?: string } => ({
     from: typeof search.from === "string" ? search.from : undefined,

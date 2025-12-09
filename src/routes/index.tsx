@@ -8,12 +8,22 @@ import { SyntaxHighlight } from "@/components/ui/SyntaxHighlight";
 import { hobbesAscii } from "@/lib/ascii/hobbes";
 import { loadPageContent } from "@/lib/content";
 import { routeTree } from "@/lib/routes";
+import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
   component: HomePage,
   loader: () => {
     const content = loadPageContent("home.md");
     return { content };
+  },
+  head: () => {
+    const { meta, links } = seo({
+      title: "Home",
+      description:
+        "Welcome to hobbescodes - software engineer and tiger enthusiast. Building things on the internet.",
+      url: "/",
+    });
+    return { meta, links };
   },
   validateSearch: (search: Record<string, unknown>): { from?: string } => ({
     from: typeof search.from === "string" ? search.from : undefined,
