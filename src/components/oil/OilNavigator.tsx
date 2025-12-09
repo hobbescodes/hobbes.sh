@@ -1,4 +1,4 @@
-import { type FC, useEffect, useCallback } from 'react'
+import { type FC, useState, useEffect, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { OilEntry } from './OilEntry'
 import { useNavigation } from '@/context/NavigationContext'
@@ -8,23 +8,41 @@ import { getParentPath } from '@/lib/routes'
 interface OilNavigatorProps {
   entries: RouteEntry[]
   currentPath: string
-  selectedIndex: number
-  onSelectedIndexChange: (index: number) => void
+  /** Initial selected index (defaults to 0) */
+  initialIndex?: number
+  /** Line number where oil section starts in the buffer (for computing currentLine) */
+  startLine?: number
+  /** Callback when current line changes (computed from startLine + selection) */
+  onCurrentLineChange?: (line: number) => void
   showParent?: boolean
 }
 
 export const OilNavigator: FC<OilNavigatorProps> = ({
   entries,
   currentPath,
-  selectedIndex,
-  onSelectedIndexChange,
+  initialIndex = 0,
+  startLine = 1,
+  onCurrentLineChange,
   showParent = true,
 }) => {
   const navigate = useNavigate()
+  const { mode, getCount, setCountBuffer } = useNavigation()
+  
+  // OilNavigator owns its selection state internally
+  const [selectedIndex, setSelectedIndex] = useState(initialIndex)
   
   // Create the full list including parent directory if applicable
   const hasParent = showParent && currentPath !== '/'
   const totalItems = hasParent ? entries.length + 1 : entries.length
+
+  // Compute and report current line when selection changes
+  // currentLine = startLine + 1 (for header) + selectedIndex
+  const currentLine = startLine + 1 + selectedIndex
+  
+  // Report current line to parent via callback (legitimate external sync)
+  useEffect(() => {
+    onCurrentLineChange?.(currentLine)
+  }, [currentLine, onCurrentLineChange])
 
   const handleNavigate = useCallback((index?: number) => {
     const targetIndex = index ?? selectedIndex
@@ -43,8 +61,6 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
     }
   }, [selectedIndex, hasParent, entries, navigate, currentPath])
 
-  const { mode, getCount, setCountBuffer } = useNavigation()
-
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     // Don't handle if user is typing in an input
     if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -62,8 +78,8 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
         e.preventDefault()
         {
           const count = getCount()
-          onSelectedIndexChange(Math.min(selectedIndex + count, totalItems - 1))
-          setCountBuffer('') // Clear count after motion
+          setSelectedIndex((prev) => Math.min(prev + count, totalItems - 1))
+          setCountBuffer('')
         }
         break
       case 'k':
@@ -71,18 +87,18 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
         e.preventDefault()
         {
           const count = getCount()
-          onSelectedIndexChange(Math.max(selectedIndex - count, 0))
-          setCountBuffer('') // Clear count after motion
+          setSelectedIndex((prev) => Math.max(prev - count, 0))
+          setCountBuffer('')
         }
         break
       case 'Enter':
         e.preventDefault()
-        setCountBuffer('') // Clear count on navigation
+        setCountBuffer('')
         handleNavigate()
         break
       case '-':
         e.preventDefault()
-        setCountBuffer('') // Clear count on navigation
+        setCountBuffer('')
         if (currentPath !== '/') {
           navigate({ 
             to: getParentPath(currentPath),
@@ -91,17 +107,12 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
         }
         break
     }
-  }, [selectedIndex, totalItems, onSelectedIndexChange, handleNavigate, navigate, currentPath, mode, getCount, setCountBuffer])
+  }, [totalItems, handleNavigate, navigate, currentPath, mode, getCount, setCountBuffer])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
-
-  // Reset selection when entries change
-  useEffect(() => {
-    onSelectedIndexChange(0)
-  }, [currentPath, onSelectedIndexChange])
 
   return (
     <div className="flex flex-col leading-[1.6]">

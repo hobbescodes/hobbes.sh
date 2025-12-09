@@ -41,9 +41,23 @@ export function useBufferNavigation({
   onNavigateBack,
 }: UseBufferNavigationOptions): UseBufferNavigationReturn {
   const { mode, getCount, setCountBuffer } = useNavigation()
-  const [currentLine, setCurrentLine] = useState(initialLine)
+  const [currentLineRaw, setCurrentLineRaw] = useState(initialLine)
 
   const totalLines = content.length
+  
+  // Derive clamped current line - always valid even if content shrinks
+  const currentLine = Math.max(1, Math.min(currentLineRaw, totalLines))
+  
+  // Setter that clamps the value
+  const setCurrentLine = useCallback(
+    (line: number | ((prev: number) => number)) => {
+      setCurrentLineRaw((prev) => {
+        const newValue = typeof line === 'function' ? line(prev) : line
+        return Math.max(1, Math.min(newValue, totalLines))
+      })
+    },
+    [totalLines]
+  )
 
   // Pre-compute which lines have links
   const lineUrls = useMemo(() => {
@@ -89,7 +103,7 @@ export function useBufferNavigation({
         case 'ArrowDown': {
           e.preventDefault()
           const count = getCount()
-          setCurrentLine((prev) => Math.min(prev + count, totalLines))
+          setCurrentLine((prev) => prev + count)
           setCountBuffer('')
           break
         }
@@ -97,7 +111,7 @@ export function useBufferNavigation({
         case 'ArrowUp': {
           e.preventDefault()
           const count = getCount()
-          setCurrentLine((prev) => Math.max(prev - count, 1))
+          setCurrentLine((prev) => prev - count)
           setCountBuffer('')
           break
         }
@@ -116,7 +130,7 @@ export function useBufferNavigation({
         }
       }
     },
-    [mode, getCount, setCountBuffer, totalLines, currentLineUrl, openUrl, onNavigateBack]
+    [mode, getCount, setCountBuffer, setCurrentLine, currentLineUrl, openUrl, onNavigateBack]
   )
 
   // Listen for gx-execute event from NavigationContext
@@ -133,12 +147,12 @@ export function useBufferNavigation({
         .detail
       // Add 1 extra line to account for title bar clipping
       if (direction === 'down') {
-        setCurrentLine((prev) => Math.min(prev + lines + 1, totalLines))
+        setCurrentLine((prev) => prev + lines + 1)
       } else {
-        setCurrentLine((prev) => Math.max(prev - lines - 1, 1))
+        setCurrentLine((prev) => prev - lines - 1)
       }
     },
-    [totalLines]
+    [setCurrentLine]
   )
 
   // Set up event listeners
@@ -152,13 +166,6 @@ export function useBufferNavigation({
       window.removeEventListener('scroll-half-page', handleScrollHalfPage)
     }
   }, [handleKeyDown, handleGxExecute, handleScrollHalfPage])
-
-  // Clamp current line if content changes
-  useEffect(() => {
-    if (currentLine > totalLines) {
-      setCurrentLine(totalLines)
-    }
-  }, [currentLine, totalLines])
 
   return {
     currentLine,

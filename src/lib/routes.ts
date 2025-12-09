@@ -1,5 +1,6 @@
 import type { RouteEntry } from '@/types'
 import { getAllBlogPosts } from './content'
+import { projects } from './projects'
 
 export const routeTree: RouteEntry = {
   name: 'hobbescodes',
@@ -134,25 +135,9 @@ export function getAllRoutes(): SearchableRoute[] {
 
 /**
  * Get searchable routes for projects
- * This will be populated from the projects data
+ * Uses the centralized projects data from lib/projects.ts
  */
 function getProjectSearchRoutes(): SearchableRoute[] {
-  // Mock project data for search - matches projects/index.tsx
-  const projects = [
-    {
-      name: 'terminal-website',
-      description: 'A terminal-inspired personal website built with TanStack Start',
-    },
-    {
-      name: 'nvim-config',
-      description: 'My Neovim configuration with LSP, Treesitter, and more',
-    },
-    {
-      name: 'rust-cli-tools',
-      description: 'A collection of useful CLI tools written in Rust',
-    },
-  ]
-
   return projects.map((p) => ({
     path: `/projects/${p.name}`,
     displayName: `${p.name}.md`,

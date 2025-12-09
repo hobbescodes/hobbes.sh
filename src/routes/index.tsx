@@ -6,7 +6,7 @@ import { hobbesAscii } from "@/lib/ascii/hobbes";
 import { loadPageContent } from "@/lib/content";
 import { routeTree } from "@/lib/routes";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export const Route = createFileRoute("/")({
 	component: HomePage,
@@ -33,20 +33,14 @@ function HomePage() {
 		return index >= 0 ? index : 0;
 	}, [from, entries]);
 
-	const [selectedIndex, setSelectedIndex] = useState(initialIndex);
-
-	// Update selected index when 'from' changes (navigating back)
-	useEffect(() => {
-		setSelectedIndex(initialIndex);
-	}, [initialIndex]);
-
 	// Calculate line counts for the buffer
 	const asciiLineCount = hobbesAscii.split("\n").length;
 
 	// Line where oil navigator starts (after ASCII + content)
 	const oilStartLine = asciiLineCount + content.length + 1;
-	// Current line = oil start + 1 (for header) + selectedIndex
-	const currentLine = oilStartLine + 1 + selectedIndex;
+
+	// Current line is reported by OilNavigator via callback
+	const [currentLine, setCurrentLine] = useState(oilStartLine + 1 + initialIndex);
 
 	const totalLines = oilStartLine + entries.length + 5;
 	// Content lines = ASCII + markdown content + oil header + entries
@@ -67,12 +61,14 @@ function HomePage() {
 				{/* Welcome text from markdown */}
 				<SyntaxHighlight content={content} filetype="markdown" />
 
-				{/* Oil navigator */}
+				{/* Oil navigator - key resets state when navigation source changes */}
 				<OilNavigator
+					key={from ?? 'home'}
 					entries={entries}
 					currentPath="/"
-					selectedIndex={selectedIndex}
-					onSelectedIndexChange={setSelectedIndex}
+					initialIndex={initialIndex}
+					startLine={oilStartLine}
+					onCurrentLineChange={setCurrentLine}
 					showParent={false}
 				/>
 			</Buffer>

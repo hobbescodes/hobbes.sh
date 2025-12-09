@@ -5,6 +5,7 @@ import {
   useCallback,
   useEffect,
   useRef,
+  useMemo,
   type FC,
   type ReactNode,
 } from 'react'
@@ -70,8 +71,45 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([])
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(0)
+  
+  // Derive search results from query - no need for state + effect
+  const searchResults = useMemo((): SearchResult[] => {
+    if (mode !== 'SEARCH' || !searchQuery.trim()) {
+      return []
+    }
+
+    const allRoutes = getAllRoutes()
+    const lowerQuery = searchQuery.toLowerCase()
+
+    return allRoutes
+      .filter((route: SearchableRoute) => {
+        // Match against display name
+        if (route.displayName.toLowerCase().includes(lowerQuery)) return true
+        // Match against path
+        if (route.path.toLowerCase().includes(lowerQuery)) return true
+        // Match against title if available
+        if (route.title?.toLowerCase().includes(lowerQuery)) return true
+        // Match against description if available
+        if (route.description?.toLowerCase().includes(lowerQuery)) return true
+        // Match against tags if available
+        if (route.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))) return true
+        return false
+      })
+      .map((route: SearchableRoute) => ({
+        path: route.path,
+        displayName: route.displayName,
+        type: route.type,
+        matchType: 'route' as const,
+        snippet: route.description || route.title,
+      }))
+  }, [mode, searchQuery])
+  
+  // Keep selected index in bounds when results change
+  const clampedSelectedSearchIndex = Math.min(
+    selectedSearchIndex,
+    Math.max(0, searchResults.length - 1)
+  )
 
   // Command state
   const [commandBuffer, setCommandBuffer] = useState('')
@@ -99,7 +137,6 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     setCountBuffer('') // Always clear count buffer on mode change
     if (newMode === 'NORMAL') {
       setSearchQuery('')
-      setSearchResults([])
       setSelectedSearchIndex(0)
       setCommandBuffer('')
       setCommandError(null)
@@ -108,54 +145,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
       setCommandError(null)
     } else if (newMode === 'COMMAND') {
       setSearchQuery('')
-      setSearchResults([])
       setSelectedSearchIndex(0)
     }
   }, [])
-
-  // Search function
-  const performSearch = useCallback((query: string) => {
-    if (!query.trim()) {
-      setSearchResults([])
-      setSelectedSearchIndex(0)
-      return
-    }
-
-    const allRoutes = getAllRoutes()
-    const lowerQuery = query.toLowerCase()
-
-    const results: SearchResult[] = allRoutes
-      .filter((route: SearchableRoute) => {
-        // Match against display name
-        if (route.displayName.toLowerCase().includes(lowerQuery)) return true
-        // Match against path
-        if (route.path.toLowerCase().includes(lowerQuery)) return true
-        // Match against title if available
-        if (route.title?.toLowerCase().includes(lowerQuery)) return true
-        // Match against description if available
-        if (route.description?.toLowerCase().includes(lowerQuery)) return true
-        // Match against tags if available
-        if (route.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))) return true
-        return false
-      })
-      .map((route: SearchableRoute) => ({
-        path: route.path,
-        displayName: route.displayName,
-        type: route.type,
-        matchType: 'route' as const,
-        snippet: route.description || route.title,
-      }))
-
-    setSearchResults(results)
-    setSelectedSearchIndex(0)
-  }, [])
-
-  // Update search results when query changes
-  useEffect(() => {
-    if (mode === 'SEARCH') {
-      performSearch(searchQuery)
-    }
-  }, [searchQuery, mode, performSearch])
 
   // Execute command
   const executeCommand = useCallback(() => {
@@ -387,8 +379,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
             break
           case 'Enter':
             e.preventDefault()
-            if (searchResults.length > 0 && searchResults[selectedSearchIndex]) {
-              navigate({ to: searchResults[selectedSearchIndex].path as '/', search: {} })
+            if (searchResults.length > 0 && searchResults[clampedSelectedSearchIndex]) {
+              navigate({ to: searchResults[clampedSelectedSearchIndex].path as '/', search: {} })
               setMode('NORMAL')
             }
             break
@@ -445,7 +437,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     executeCommand,
     commandError,
     searchResults,
-    selectedSearchIndex,
+    clampedSelectedSearchIndex,
     navigate,
     countBuffer,
     pendingOperator,
@@ -463,7 +455,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     searchQuery,
     setSearchQuery,
     searchResults,
-    selectedSearchIndex,
+    selectedSearchIndex: clampedSelectedSearchIndex,
     setSelectedSearchIndex,
     commandBuffer,
     setCommandBuffer,
