@@ -1,8 +1,10 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
+
+import type { ClassValue } from "clsx";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -11,6 +13,6 @@ export function cn(...inputs: ClassValue[]) {
  * @returns The first URL found, or null if none
  */
 export function extractUrl(line: string): string | null {
-  const match = line.match(/https:\/\/[^\s]+/)
-  return match ? match[0] : null
+  const match = line.match(/https:\/\/[^\s]+/);
+  return match ? match[0] : null;
 }

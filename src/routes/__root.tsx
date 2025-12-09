@@ -3,53 +3,53 @@ import {
   Outlet,
   Scripts,
   createRootRoute,
-} from '@tanstack/react-router'
-import { NavigationProvider } from '@/context/NavigationContext'
-import ThemeProvider from '@/context/ThemeContext'
-import { getTheme } from '@/server/functions/theme'
+} from "@tanstack/react-router";
 
-import appCss from '../styles.css?url'
+import { NavigationProvider } from "@/context/NavigationContext";
+import ThemeProvider from "@/context/ThemeContext";
+import { getTheme } from "@/server/functions/theme";
+import appCss from "@/styles.css?url";
 
 export const Route = createRootRoute({
   beforeLoad: async () => {
-    const theme = await getTheme()
-    return { theme }
+    const theme = await getTheme();
+    return { theme };
   },
   head: () => ({
     meta: [
       {
-        charSet: 'utf-8',
+        charSet: "utf-8",
       },
       {
-        name: 'viewport',
-        content: 'width=device-width, initial-scale=1',
+        name: "viewport",
+        content: "width=device-width, initial-scale=1",
       },
       {
-        title: 'HobbesCodes',
+        title: "HobbesCodes",
       },
       {
-        name: 'description',
+        name: "description",
         content:
-          'Software engineer and tiger enthusiast. Building things on the internet.',
+          "Software engineer and tiger enthusiast. Building things on the internet.",
       },
     ],
     links: [
       {
-        rel: 'stylesheet',
+        rel: "stylesheet",
         href: appCss,
       },
       {
-        rel: 'icon',
-        href: '/favicon.ico',
+        rel: "icon",
+        href: "/favicon.ico",
       },
     ],
   }),
 
   component: RootComponent,
-})
+});
 
 function RootComponent() {
-  const { theme } = Route.useRouteContext()
+  const { theme } = Route.useRouteContext();
 
   return (
     <html lang="en" className={theme}>
@@ -65,5 +65,5 @@ function RootComponent() {
         <Scripts />
       </body>
     </html>
-  )
+  );
 }

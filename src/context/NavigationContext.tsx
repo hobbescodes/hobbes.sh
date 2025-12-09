@@ -1,226 +1,237 @@
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useEffect,
-  useRef,
   useMemo,
-  type FC,
-  type ReactNode,
-} from 'react'
-import { useNavigate, useLocation } from '@tanstack/react-router'
-import { getAllRoutes, searchRoutes, type SearchableRoute } from '@/lib/routes'
+  useRef,
+  useState,
+} from "react";
+
+import { getAllRoutes, searchRoutes } from "@/lib/routes";
+
+import type { FC, ReactNode } from "react";
+import type { SearchableRoute } from "@/lib/routes";
 
 // Types
-export type NavigationMode = 'NORMAL' | 'COMMAND' | 'SEARCH'
+export type NavigationMode = "NORMAL" | "COMMAND" | "SEARCH";
 
 export interface SearchResult {
-  path: string
-  displayName: string
-  type: 'file' | 'directory'
-  matchType: 'route' | 'content'
-  snippet?: string
+  path: string;
+  displayName: string;
+  type: "file" | "directory";
+  matchType: "route" | "content";
+  snippet?: string;
 }
 
 interface NavigationContextValue {
   // Mode management
-  mode: NavigationMode
-  setMode: (mode: NavigationMode) => void
+  mode: NavigationMode;
+  setMode: (mode: NavigationMode) => void;
 
   // Search state
-  searchQuery: string
-  setSearchQuery: (query: string) => void
-  searchResults: SearchResult[]
-  selectedSearchIndex: number
-  setSelectedSearchIndex: (index: number) => void
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  searchResults: SearchResult[];
+  selectedSearchIndex: number;
+  setSelectedSearchIndex: (index: number) => void;
 
   // Command state
-  commandBuffer: string
-  setCommandBuffer: (cmd: string) => void
-  commandError: string | null
-  setCommandError: (error: string | null) => void
-  executeCommand: () => void
+  commandBuffer: string;
+  setCommandBuffer: (cmd: string) => void;
+  commandError: string | null;
+  setCommandError: (error: string | null) => void;
+  executeCommand: () => void;
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
-  countBuffer: string
-  setCountBuffer: (count: string) => void
-  getCount: () => number
+  countBuffer: string;
+  setCountBuffer: (count: string) => void;
+  getCount: () => number;
 
   // Pending operator for multi-key commands (e.g., "gx")
-  pendingOperator: string | null
-  setPendingOperator: (op: string | null) => void
+  pendingOperator: string | null;
+  setPendingOperator: (op: string | null) => void;
 
   // Help overlay
-  showHelp: boolean
-  setShowHelp: (show: boolean) => void
+  showHelp: boolean;
+  setShowHelp: (show: boolean) => void;
 }
 
-const NavigationContext = createContext<NavigationContextValue | null>(null)
+const NavigationContext = createContext<NavigationContextValue | null>(null);
 
 interface NavigationProviderProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
-export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) => {
-  const navigate = useNavigate()
-  const location = useLocation()
+export const NavigationProvider: FC<NavigationProviderProps> = ({
+  children,
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Mode state
-  const [mode, setModeInternal] = useState<NavigationMode>('NORMAL')
+  const [mode, setModeInternal] = useState<NavigationMode>("NORMAL");
 
   // Search state
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedSearchIndex, setSelectedSearchIndex] = useState(0)
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(0);
+
   // Derive search results from query - no need for state + effect
   const searchResults = useMemo((): SearchResult[] => {
-    if (mode !== 'SEARCH' || !searchQuery.trim()) {
-      return []
+    if (mode !== "SEARCH" || !searchQuery.trim()) {
+      return [];
     }
 
-    const allRoutes = getAllRoutes()
-    const lowerQuery = searchQuery.toLowerCase()
+    const allRoutes = getAllRoutes();
+    const lowerQuery = searchQuery.toLowerCase();
 
     return allRoutes
       .filter((route: SearchableRoute) => {
         // Match against display name
-        if (route.displayName.toLowerCase().includes(lowerQuery)) return true
+        if (route.displayName.toLowerCase().includes(lowerQuery)) return true;
         // Match against path
-        if (route.path.toLowerCase().includes(lowerQuery)) return true
+        if (route.path.toLowerCase().includes(lowerQuery)) return true;
         // Match against title if available
-        if (route.title?.toLowerCase().includes(lowerQuery)) return true
+        if (route.title?.toLowerCase().includes(lowerQuery)) return true;
         // Match against description if available
-        if (route.description?.toLowerCase().includes(lowerQuery)) return true
+        if (route.description?.toLowerCase().includes(lowerQuery)) return true;
         // Match against tags if available
-        if (route.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))) return true
-        return false
+        if (route.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery)))
+          return true;
+        return false;
       })
       .map((route: SearchableRoute) => ({
         path: route.path,
         displayName: route.displayName,
         type: route.type,
-        matchType: 'route' as const,
+        matchType: "route" as const,
         snippet: route.description || route.title,
-      }))
-  }, [mode, searchQuery])
-  
+      }));
+  }, [mode, searchQuery]);
+
   // Keep selected index in bounds when results change
   const clampedSelectedSearchIndex = Math.min(
     selectedSearchIndex,
-    Math.max(0, searchResults.length - 1)
-  )
+    Math.max(0, searchResults.length - 1),
+  );
 
   // Command state
-  const [commandBuffer, setCommandBuffer] = useState('')
-  const [commandError, setCommandError] = useState<string | null>(null)
+  const [commandBuffer, setCommandBuffer] = useState("");
+  const [commandError, setCommandError] = useState<string | null>(null);
 
   // Help overlay
-  const [showHelp, setShowHelp] = useState(false)
+  const [showHelp, setShowHelp] = useState(false);
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
-  const [countBuffer, setCountBuffer] = useState('')
+  const [countBuffer, setCountBuffer] = useState("");
 
   // Pending operator for multi-key commands (e.g., "gx")
-  const [pendingOperator, setPendingOperator] = useState<string | null>(null)
-  const pendingOperatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [pendingOperator, setPendingOperator] = useState<string | null>(null);
+  const pendingOperatorTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
 
   // Get the count value (defaults to 1 if no count specified)
   const getCount = useCallback(() => {
-    const count = parseInt(countBuffer, 10)
-    return isNaN(count) || count < 1 ? 1 : count
-  }, [countBuffer])
+    const count = parseInt(countBuffer, 10);
+    return Number.isNaN(count) || count < 1 ? 1 : count;
+  }, [countBuffer]);
 
   // Set mode with cleanup
   const setMode = useCallback((newMode: NavigationMode) => {
-    setModeInternal(newMode)
-    setCountBuffer('') // Always clear count buffer on mode change
-    if (newMode === 'NORMAL') {
-      setSearchQuery('')
-      setSelectedSearchIndex(0)
-      setCommandBuffer('')
-      setCommandError(null)
-    } else if (newMode === 'SEARCH') {
-      setCommandBuffer('')
-      setCommandError(null)
-    } else if (newMode === 'COMMAND') {
-      setSearchQuery('')
-      setSelectedSearchIndex(0)
+    setModeInternal(newMode);
+    setCountBuffer(""); // Always clear count buffer on mode change
+    if (newMode === "NORMAL") {
+      setSearchQuery("");
+      setSelectedSearchIndex(0);
+      setCommandBuffer("");
+      setCommandError(null);
+    } else if (newMode === "SEARCH") {
+      setCommandBuffer("");
+      setCommandError(null);
+    } else if (newMode === "COMMAND") {
+      setSearchQuery("");
+      setSelectedSearchIndex(0);
     }
-  }, [])
+  }, []);
 
   // Execute command
   const executeCommand = useCallback(() => {
-    const cmd = commandBuffer.trim()
-    const cmdLower = cmd.toLowerCase()
+    const cmd = commandBuffer.trim();
+    const cmdLower = cmd.toLowerCase();
 
-    if (cmdLower === 'q') {
-      navigate({ to: '/', search: {} })
-      setMode('NORMAL')
-    } else if (cmdLower === 'help' || cmdLower === 'h') {
-      setMode('NORMAL')
-      setShowHelp(true)
-    } else if (cmdLower === '') {
-      setMode('NORMAL')
-    } else if (cmdLower.startsWith('e ') || cmdLower.startsWith('edit ')) {
+    if (cmdLower === "q") {
+      navigate({ to: "/", search: {} });
+      setMode("NORMAL");
+    } else if (cmdLower === "help" || cmdLower === "h") {
+      setMode("NORMAL");
+      setShowHelp(true);
+    } else if (cmdLower === "") {
+      setMode("NORMAL");
+    } else if (cmdLower.startsWith("e ") || cmdLower.startsWith("edit ")) {
       // Parse :e <path> or :edit <path>
-      const pathArg = cmd.replace(/^(e|edit)\s+/i, '').trim()
-      
+      const pathArg = cmd.replace(/^(e|edit)\s+/i, "").trim();
+
       if (!pathArg) {
-        setCommandError('E32: No file name')
-        return
+        setCommandError("E32: No file name");
+        return;
       }
 
       // Normalize the path
-      let targetPath = pathArg
+      let targetPath = pathArg;
       // Remove common prefixes like ~/ or ~/hobbescodes/
-      targetPath = targetPath.replace(/^~\/?/, '').replace(/^hobbescodes\/?/, '')
+      targetPath = targetPath
+        .replace(/^~\/?/, "")
+        .replace(/^hobbescodes\/?/, "");
       // Remove .md extension if present
-      targetPath = targetPath.replace(/\.md$/, '')
+      targetPath = targetPath.replace(/\.md$/, "");
       // Ensure leading slash
-      if (!targetPath.startsWith('/')) {
-        targetPath = '/' + targetPath
+      if (!targetPath.startsWith("/")) {
+        targetPath = "/" + targetPath;
       }
       // Remove trailing slash for files
-      if (targetPath !== '/' && targetPath.endsWith('/')) {
-        targetPath = targetPath.slice(0, -1)
+      if (targetPath !== "/" && targetPath.endsWith("/")) {
+        targetPath = targetPath.slice(0, -1);
       }
 
       // Try exact match first
-      const allRoutes = getAllRoutes()
-      let match = allRoutes.find((r) => r.path === targetPath)
+      const allRoutes = getAllRoutes();
+      let match = allRoutes.find((r) => r.path === targetPath);
 
       // Try fuzzy search if no exact match
       if (!match) {
-        const searchResults = searchRoutes(pathArg)
+        const searchResults = searchRoutes(pathArg);
         if (searchResults.length === 1) {
-          match = searchResults[0]
+          match = searchResults[0];
         } else if (searchResults.length > 1) {
           // If multiple matches, try to find exact displayName match
           match = searchResults.find(
-            (r) => r.displayName.replace(/\.md$/, '').toLowerCase() === pathArg.toLowerCase()
-          )
+            (r) =>
+              r.displayName.replace(/\.md$/, "").toLowerCase() ===
+              pathArg.toLowerCase(),
+          );
           // Fall back to first result if no exact match
           if (!match) {
-            match = searchResults[0]
+            match = searchResults[0];
           }
         }
       }
 
       if (match) {
         // Use type assertion since we know these are valid routes
-        navigate({ to: match.path as '/', search: {} })
-        setMode('NORMAL')
+        navigate({ to: match.path as "/", search: {} });
+        setMode("NORMAL");
       } else {
-        setCommandError(`E32: Can't find file "${pathArg}"`)
+        setCommandError(`E32: Can't find file "${pathArg}"`);
       }
-    } else if (cmdLower === 'flashbang') {
-      window.dispatchEvent(new CustomEvent('flashbang-toggle'))
-      setMode('NORMAL')
+    } else if (cmdLower === "flashbang") {
+      window.dispatchEvent(new CustomEvent("flashbang-toggle"));
+      setMode("NORMAL");
     } else {
-      setCommandError(`Unknown command: ${cmd}`)
+      setCommandError(`Unknown command: ${cmd}`);
     }
-  }, [commandBuffer, navigate, setMode, setShowHelp])
+  }, [commandBuffer, navigate, setMode]);
 
   // Global keyboard handler
   useEffect(() => {
@@ -230,207 +241,215 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
         e.target instanceof HTMLInputElement ||
         e.target instanceof HTMLTextAreaElement
       ) {
-        return
+        return;
       }
 
       // Handle based on current mode
-      if (mode === 'NORMAL') {
+      if (mode === "NORMAL") {
         // Handle pending operator (e.g., 'g' waiting for 'x')
-        if (pendingOperator === 'g') {
-          e.preventDefault()
+        if (pendingOperator === "g") {
+          e.preventDefault();
           // Clear the timeout since we got a follow-up key
           if (pendingOperatorTimeoutRef.current) {
-            clearTimeout(pendingOperatorTimeoutRef.current)
-            pendingOperatorTimeoutRef.current = null
+            clearTimeout(pendingOperatorTimeoutRef.current);
+            pendingOperatorTimeoutRef.current = null;
           }
-          
-          if (e.key === 'x') {
+
+          if (e.key === "x") {
             // Dispatch gx event for pages to handle
-            window.dispatchEvent(new CustomEvent('gx-execute'))
+            window.dispatchEvent(new CustomEvent("gx-execute"));
           }
           // Clear pending operator regardless of which key was pressed
-          setPendingOperator(null)
-          return
+          setPendingOperator(null);
+          return;
         }
 
         // Handle Ctrl+D and Ctrl+U for half-page scrolling
-        if (e.ctrlKey && (e.key === 'd' || e.key === 'u')) {
-          e.preventDefault()
-          setCountBuffer('') // Clear count on scroll
+        if (e.ctrlKey && (e.key === "d" || e.key === "u")) {
+          e.preventDefault();
+          setCountBuffer(""); // Clear count on scroll
           // Find the scrollable buffer container
-          const scrollContainer = document.querySelector('.overflow-auto')
+          const scrollContainer = document.querySelector(".overflow-auto");
           if (scrollContainer) {
-            const lineHeight = 22.4 // 1.6 line-height * ~14px base font
-            const halfPageLines = Math.floor(scrollContainer.clientHeight / lineHeight / 2)
-            const scrollAmount = scrollContainer.clientHeight / 2
-            
+            const lineHeight = 22.4; // 1.6 line-height * ~14px base font
+            const halfPageLines = Math.floor(
+              scrollContainer.clientHeight / lineHeight / 2,
+            );
+            const scrollAmount = scrollContainer.clientHeight / 2;
+
             scrollContainer.scrollBy({
-              top: e.key === 'd' ? scrollAmount : -scrollAmount,
-              behavior: 'smooth',
-            })
-            
+              top: e.key === "d" ? scrollAmount : -scrollAmount,
+              behavior: "smooth",
+            });
+
             // Dispatch event for useBufferNavigation to update currentLine
             window.dispatchEvent(
-              new CustomEvent('scroll-half-page', {
+              new CustomEvent("scroll-half-page", {
                 detail: {
-                  direction: e.key === 'd' ? 'down' : 'up',
+                  direction: e.key === "d" ? "down" : "up",
                   lines: halfPageLines,
                 },
-              })
-            )
+              }),
+            );
           }
-          return
+          return;
         }
 
         // Handle digit keys for count buffer (vim-style count prefix)
-        if (e.key >= '0' && e.key <= '9') {
+        if (e.key >= "0" && e.key <= "9") {
           // Don't capture '0' if count buffer is empty (0 alone could be future "go to start")
-          if (e.key === '0' && countBuffer === '') {
-            return
+          if (e.key === "0" && countBuffer === "") {
+            return;
           }
-          e.preventDefault()
-          setCountBuffer((prev) => prev + e.key)
-          return
+          e.preventDefault();
+          setCountBuffer((prev) => prev + e.key);
+          return;
         }
 
         switch (e.key) {
-          case 'g':
-            e.preventDefault()
-            setCountBuffer('') // Clear count when starting pending operator
-            setPendingOperator('g')
+          case "g":
+            e.preventDefault();
+            setCountBuffer(""); // Clear count when starting pending operator
+            setPendingOperator("g");
             // Set timeout to clear pending operator after 800ms
             pendingOperatorTimeoutRef.current = setTimeout(() => {
-              setPendingOperator(null)
-              pendingOperatorTimeoutRef.current = null
-            }, 800)
-            break
-          case ':':
-            e.preventDefault()
-            setCountBuffer('') // Clear count when entering command mode
-            setMode('COMMAND')
-            break
-          case '/':
-            e.preventDefault()
-            setCountBuffer('') // Clear count when entering search mode
-            setMode('SEARCH')
-            break
-          case '?':
-            e.preventDefault()
-            setCountBuffer('')
-            setShowHelp((prev) => !prev)
-            break
-          case 'Escape':
-            e.preventDefault()
-            setCountBuffer('') // Clear count on escape
-            setPendingOperator(null) // Clear pending operator on escape
+              setPendingOperator(null);
+              pendingOperatorTimeoutRef.current = null;
+            }, 800);
+            break;
+          case ":":
+            e.preventDefault();
+            setCountBuffer(""); // Clear count when entering command mode
+            setMode("COMMAND");
+            break;
+          case "/":
+            e.preventDefault();
+            setCountBuffer(""); // Clear count when entering search mode
+            setMode("SEARCH");
+            break;
+          case "?":
+            e.preventDefault();
+            setCountBuffer("");
+            setShowHelp((prev) => !prev);
+            break;
+          case "Escape":
+            e.preventDefault();
+            setCountBuffer(""); // Clear count on escape
+            setPendingOperator(null); // Clear pending operator on escape
             if (pendingOperatorTimeoutRef.current) {
-              clearTimeout(pendingOperatorTimeoutRef.current)
-              pendingOperatorTimeoutRef.current = null
+              clearTimeout(pendingOperatorTimeoutRef.current);
+              pendingOperatorTimeoutRef.current = null;
             }
-            setShowHelp(false)
-            break
-          case 'Backspace':
+            setShowHelp(false);
+            break;
+          case "Backspace":
             // Handle backspace when in count buffer mode
             if (countBuffer.length > 0) {
-              e.preventDefault()
-              setCountBuffer((prev) => prev.slice(0, -1))
+              e.preventDefault();
+              setCountBuffer((prev) => prev.slice(0, -1));
             }
-            break
+            break;
         }
-      } else if (mode === 'COMMAND') {
+      } else if (mode === "COMMAND") {
         switch (e.key) {
-          case 'Escape':
-            e.preventDefault()
-            setMode('NORMAL')
-            break
-          case 'Enter':
-            e.preventDefault()
-            executeCommand()
-            break
-          case 'Backspace':
-            e.preventDefault()
+          case "Escape":
+            e.preventDefault();
+            setMode("NORMAL");
+            break;
+          case "Enter":
+            e.preventDefault();
+            executeCommand();
+            break;
+          case "Backspace":
+            e.preventDefault();
             // Clear error on any keypress
             if (commandError) {
-              setCommandError(null)
-              setCommandBuffer('')
+              setCommandError(null);
+              setCommandBuffer("");
             } else {
-              setCommandBuffer((prev) => prev.slice(0, -1))
+              setCommandBuffer((prev) => prev.slice(0, -1));
             }
-            break
+            break;
           default:
             // Only handle printable characters
             if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-              e.preventDefault()
+              e.preventDefault();
               // Clear error on any keypress
               if (commandError) {
-                setCommandError(null)
-                setCommandBuffer(e.key)
+                setCommandError(null);
+                setCommandBuffer(e.key);
               } else {
-                setCommandBuffer((prev) => prev + e.key)
+                setCommandBuffer((prev) => prev + e.key);
               }
             }
-            break
+            break;
         }
-      } else if (mode === 'SEARCH') {
+      } else if (mode === "SEARCH") {
         switch (e.key) {
-          case 'Escape':
-            e.preventDefault()
-            setMode('NORMAL')
-            break
-          case 'Enter':
-            e.preventDefault()
-            if (searchResults.length > 0 && searchResults[clampedSelectedSearchIndex]) {
-              navigate({ to: searchResults[clampedSelectedSearchIndex].path as '/', search: {} })
-              setMode('NORMAL')
+          case "Escape":
+            e.preventDefault();
+            setMode("NORMAL");
+            break;
+          case "Enter":
+            e.preventDefault();
+            if (
+              searchResults.length > 0 &&
+              searchResults[clampedSelectedSearchIndex]
+            ) {
+              navigate({
+                to: searchResults[clampedSelectedSearchIndex].path as "/",
+                search: {},
+              });
+              setMode("NORMAL");
             }
-            break
-          case 'ArrowDown':
-          case 'j':
+            break;
+          case "ArrowDown":
+          case "j":
             // Only j navigates in search, not when typing
-            if (e.key === 'ArrowDown' || (e.ctrlKey && e.key === 'j')) {
-              e.preventDefault()
+            if (e.key === "ArrowDown" || (e.ctrlKey && e.key === "j")) {
+              e.preventDefault();
               setSelectedSearchIndex((prev) =>
-                Math.min(prev + 1, searchResults.length - 1)
-              )
-            } else if (e.key === 'j') {
+                Math.min(prev + 1, searchResults.length - 1),
+              );
+            } else if (e.key === "j") {
               // Let j be typed in search query
-              setSearchQuery((prev) => prev + e.key)
+              setSearchQuery((prev) => prev + e.key);
             }
-            break
-          case 'ArrowUp':
-          case 'k':
+            break;
+          case "ArrowUp":
+          case "k":
             // Only k navigates in search with ctrl
-            if (e.key === 'ArrowUp' || (e.ctrlKey && e.key === 'k')) {
-              e.preventDefault()
-              setSelectedSearchIndex((prev) => Math.max(prev - 1, 0))
-            } else if (e.key === 'k') {
+            if (e.key === "ArrowUp" || (e.ctrlKey && e.key === "k")) {
+              e.preventDefault();
+              setSelectedSearchIndex((prev) => Math.max(prev - 1, 0));
+            } else if (e.key === "k") {
               // Let k be typed in search query
-              setSearchQuery((prev) => prev + e.key)
+              setSearchQuery((prev) => prev + e.key);
             }
-            break
-          case 'Backspace':
-            e.preventDefault()
-            setSearchQuery((prev) => prev.slice(0, -1))
-            break
+            break;
+          case "Backspace":
+            e.preventDefault();
+            setSearchQuery((prev) => prev.slice(0, -1));
+            break;
           default:
             // Only handle printable characters
             if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-              e.preventDefault()
-              setSearchQuery((prev) => prev + e.key)
+              e.preventDefault();
+              setSearchQuery((prev) => prev + e.key);
             }
-            break
+            break;
         }
       }
-    }
+    };
 
-    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener("keydown", handleKeyDown);
       // Clean up pending operator timeout on unmount
       if (pendingOperatorTimeoutRef.current) {
-        clearTimeout(pendingOperatorTimeoutRef.current)
+        clearTimeout(pendingOperatorTimeoutRef.current);
       }
-    }
+    };
   }, [
     mode,
     setMode,
@@ -441,13 +460,14 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     navigate,
     countBuffer,
     pendingOperator,
-  ])
+  ]);
 
   // Reset mode when route changes
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally run on route change only
   useEffect(() => {
-    setMode('NORMAL')
-    setShowHelp(false)
-  }, [location.pathname, setMode])
+    setMode("NORMAL");
+    setShowHelp(false);
+  }, [location.pathname]);
 
   const value: NavigationContextValue = {
     mode,
@@ -469,19 +489,19 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
     setPendingOperator,
     showHelp,
     setShowHelp,
-  }
+  };
 
   return (
     <NavigationContext.Provider value={value}>
       {children}
     </NavigationContext.Provider>
-  )
-}
+  );
+};
 
 export function useNavigation(): NavigationContextValue {
-  const context = useContext(NavigationContext)
+  const context = useContext(NavigationContext);
   if (!context) {
-    throw new Error('useNavigation must be used within a NavigationProvider')
+    throw new Error("useNavigation must be used within a NavigationProvider");
   }
-  return context
+  return context;
 }

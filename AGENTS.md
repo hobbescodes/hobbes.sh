@@ -30,6 +30,7 @@ The site owner's online persona is a **tiger that is also a developer/programmer
 | TanStack Router | File-based routing |
 | Tailwind CSS v4 | Styling with custom theme tokens |
 | shadcn/ui | Accessible UI primitives (installed incrementally via CLI) |
+| Biome | Linting and formatting |
 | JetBrains Mono | Monospace font for terminal aesthetic |
 | TypeScript | Type safety throughout |
 
@@ -526,6 +527,25 @@ Content is loaded via `src/lib/content.ts`:
 
 ## Code Patterns & Conventions
 
+### Import Conventions
+
+- **Always use path aliases** (`@/`) instead of relative imports
+- **No barrel files** - Do not create `index.ts` files that re-export from other files. Barrel files cause bundlers to pull in all exports even when only one is needed, increasing bundle size unnecessarily.
+- **Import directly from source files** - Always import from the specific file that contains the export
+
+```tsx
+// Good - direct imports with path aliases
+import { Buffer } from "@/components/editor/Buffer";
+import { Terminal } from "@/components/terminal/Terminal";
+
+// Bad - barrel file imports (pulls in entire module)
+import { Buffer } from "@/components/editor";
+
+// Bad - relative imports
+import { Buffer } from "./Buffer";
+import { Terminal } from "../terminal/Terminal";
+```
+
 ### File Naming
 
 - Components: `PascalCase.tsx`
@@ -640,6 +660,8 @@ bun dev        # Start dev server on port 3000
 bun build      # Production build
 bun preview    # Preview production build
 bun test       # Run tests
+bun check      # Run Biome linting and formatting checks
+bun check:fix  # Auto-fix linting and formatting issues
 ```
 
 ---

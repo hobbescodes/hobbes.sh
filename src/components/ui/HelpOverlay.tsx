@@ -1,22 +1,22 @@
-import { type FC } from 'react'
+import type { FC } from "react";
 
 interface HelpOverlayProps {
-  onClose: () => void
+  onClose: () => void;
 }
 
 export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
   return (
     <div
       className="absolute inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: 'rgba(17, 17, 27, 0.85)' }} // --crust with opacity
+      style={{ backgroundColor: "rgba(17, 17, 27, 0.85)" }} // --crust with opacity
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl mx-4 rounded-lg overflow-hidden"
+        className="mx-4 w-full max-w-2xl overflow-hidden rounded-lg"
         style={{
-          backgroundColor: 'var(--base)',
-          border: '1px solid var(--surface0)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          backgroundColor: "var(--base)",
+          border: "1px solid var(--surface0)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.5)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -24,9 +24,9 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
         <div
           className="px-4 py-3 text-center font-bold"
           style={{
-            backgroundColor: 'var(--surface0)',
-            color: 'var(--text)',
-            borderBottom: '1px solid var(--surface1)',
+            backgroundColor: "var(--surface0)",
+            color: "var(--text)",
+            borderBottom: "1px solid var(--surface1)",
           }}
         >
           Help
@@ -38,10 +38,10 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
             {/* Navigation Column */}
             <div>
               <h3
-                className="font-bold mb-3 pb-1"
+                className="mb-3 pb-1 font-bold"
                 style={{
-                  color: 'var(--peach)',
-                  borderBottom: '1px solid var(--surface1)',
+                  color: "var(--peach)",
+                  borderBottom: "1px solid var(--surface1)",
                 }}
               >
                 Navigation
@@ -61,10 +61,10 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
             {/* Modes Column */}
             <div>
               <h3
-                className="font-bold mb-3 pb-1"
+                className="mb-3 pb-1 font-bold"
                 style={{
-                  color: 'var(--peach)',
-                  borderBottom: '1px solid var(--surface1)',
+                  color: "var(--peach)",
+                  borderBottom: "1px solid var(--surface1)",
                 }}
               >
                 Modes
@@ -80,10 +80,10 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
             {/* Commands Column */}
             <div>
               <h3
-                className="font-bold mb-3 pb-1"
+                className="mb-3 pb-1 font-bold"
                 style={{
-                  color: 'var(--peach)',
-                  borderBottom: '1px solid var(--surface1)',
+                  color: "var(--peach)",
+                  borderBottom: "1px solid var(--surface1)",
                 }}
               >
                 Commands
@@ -101,38 +101,40 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
         <div
           className="px-4 py-2 text-center text-xs"
           style={{
-            backgroundColor: 'var(--surface0)',
-            color: 'var(--overlay1)',
-            borderTop: '1px solid var(--surface1)',
+            backgroundColor: "var(--surface0)",
+            color: "var(--overlay1)",
+            borderTop: "1px solid var(--surface1)",
           }}
         >
-          Press <span style={{ color: 'var(--blue)' }}>?</span> or{' '}
-          <span style={{ color: 'var(--blue)' }}>Esc</span> to close
+          Press <span style={{ color: "var(--blue)" }}>?</span> or{" "}
+          <span style={{ color: "var(--blue)" }}>Esc</span> to close
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Helper component for key bindings
 interface KeyBindingProps {
-  keys: string
-  description: string
+  keys: string;
+  description: string;
 }
 
 const KeyBinding: FC<KeyBindingProps> = ({ keys, description }) => {
   return (
     <div className="flex items-center justify-between gap-2">
       <span
-        className="font-mono text-xs px-1.5 py-0.5 rounded"
+        className="rounded px-1.5 py-0.5 font-mono text-xs"
         style={{
-          backgroundColor: 'var(--surface1)',
-          color: 'var(--blue)',
+          backgroundColor: "var(--surface1)",
+          color: "var(--blue)",
         }}
       >
         {keys}
       </span>
-      <span className="whitespace-nowrap" style={{ color: 'var(--subtext0)' }}>{description}</span>
+      <span className="whitespace-nowrap" style={{ color: "var(--subtext0)" }}>
+        {description}
+      </span>
     </div>
-  )
-}
+  );
+};

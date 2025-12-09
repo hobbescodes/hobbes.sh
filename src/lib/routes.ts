@@ -1,84 +1,91 @@
-import type { RouteEntry } from '@/types'
-import { getAllBlogPosts } from './content'
-import { projects } from './projects'
+import { getAllBlogPosts } from "@/lib/content";
+import { projects } from "@/lib/projects";
+
+import type { RouteEntry } from "@/types";
 
 export const routeTree: RouteEntry = {
-  name: 'hobbescodes',
-  displayName: '~/',
-  type: 'directory',
-  path: '/',
+  name: "hobbescodes",
+  displayName: "~/",
+  type: "directory",
+  path: "/",
   children: [
-    { name: 'about', displayName: 'about.md', type: 'file', path: '/about' },
-    { name: 'contact', displayName: 'contact.md', type: 'file', path: '/contact' },
+    { name: "about", displayName: "about.md", type: "file", path: "/about" },
     {
-      name: 'projects',
-      displayName: 'projects/',
-      type: 'directory',
-      path: '/projects',
+      name: "contact",
+      displayName: "contact.md",
+      type: "file",
+      path: "/contact",
+    },
+    {
+      name: "projects",
+      displayName: "projects/",
+      type: "directory",
+      path: "/projects",
       children: [], // Populated dynamically
     },
     {
-      name: 'blog',
-      displayName: 'blog/',
-      type: 'directory',
-      path: '/blog',
+      name: "blog",
+      displayName: "blog/",
+      type: "directory",
+      path: "/blog",
       children: [], // Populated dynamically
     },
   ],
-}
+};
 
 /**
  * Get route entries for a given path
  */
 export function getEntriesForPath(path: string): RouteEntry[] {
-  if (path === '/') {
-    return routeTree.children || []
+  if (path === "/") {
+    return routeTree.children || [];
   }
 
   // Find the matching route
-  const segments = path.split('/').filter(Boolean)
-  let current: RouteEntry | undefined = routeTree
+  const segments = path.split("/").filter(Boolean);
+  let current: RouteEntry | undefined = routeTree;
 
   for (const segment of segments) {
-    current = current?.children?.find((child) => child.name === segment)
-    if (!current) break
+    current = current?.children?.find((child) => child.name === segment);
+    if (!current) break;
   }
 
-  return current?.children || []
+  return current?.children || [];
 }
 
 /**
  * Get parent path
  */
 export function getParentPath(path: string): string {
-  if (path === '/') return '/'
-  const segments = path.split('/').filter(Boolean)
-  segments.pop()
-  return segments.length === 0 ? '/' : `/${segments.join('/')}`
+  if (path === "/") return "/";
+  const segments = path.split("/").filter(Boolean);
+  segments.pop();
+  return segments.length === 0 ? "/" : `/${segments.join("/")}`;
 }
 
 /**
  * Convert route path to display title
  */
 export function pathToTitle(path: string): string {
-  if (path === '/') return '~/hobbescodes/'
-  
+  if (path === "/") return "~/hobbescodes/";
+
   // Determine if it's a directory or file based on path
-  const isDirectory = path.endsWith('/') || 
+  const isDirectory =
+    path.endsWith("/") ||
     routeTree.children?.some(
-      child => child.path === path && child.type === 'directory'
-    )
-  
-  const suffix = isDirectory ? '/' : '.md'
-  return `~/hobbescodes${path}${isDirectory ? '' : suffix}`
+      (child) => child.path === path && child.type === "directory",
+    );
+
+  const suffix = isDirectory ? "/" : ".md";
+  return `~/hobbescodes${path}${isDirectory ? "" : suffix}`;
 }
 
 /**
  * Convert route path to filepath for status line
  */
 export function pathToFilepath(path: string): string {
-  if (path === '/') return '~/hobbescodes/'
-  return `~/hobbescodes${path}`
+  if (path === "/") return "~/hobbescodes/";
+  return `~/hobbescodes${path}`;
 }
 
 // ============================================
@@ -86,12 +93,12 @@ export function pathToFilepath(path: string): string {
 // ============================================
 
 export interface SearchableRoute {
-  path: string
-  displayName: string
-  type: 'file' | 'directory'
-  title?: string
-  description?: string
-  tags?: string[]
+  path: string;
+  displayName: string;
+  type: "file" | "directory";
+  title?: string;
+  description?: string;
+  tags?: string[];
 }
 
 /**
@@ -99,38 +106,38 @@ export interface SearchableRoute {
  * This includes static routes and will be extended with dynamic content
  */
 export function getAllRoutes(): SearchableRoute[] {
-  const routes: SearchableRoute[] = []
+  const routes: SearchableRoute[] = [];
 
   // Add static routes from routeTree
-  function flattenRoutes(entry: RouteEntry, _parentPath: string = '') {
+  function flattenRoutes(entry: RouteEntry, _parentPath: string = "") {
     routes.push({
       path: entry.path,
       displayName: entry.displayName,
       type: entry.type,
-    })
+    });
 
     if (entry.children) {
       for (const child of entry.children) {
-        flattenRoutes(child, entry.path)
+        flattenRoutes(child, entry.path);
       }
     }
   }
 
   // Start from children to skip root
   for (const child of routeTree.children || []) {
-    flattenRoutes(child)
+    flattenRoutes(child);
   }
 
   // Add project entries with their metadata
   // These are imported dynamically to avoid circular deps
-  const projectRoutes = getProjectSearchRoutes()
-  routes.push(...projectRoutes)
+  const projectRoutes = getProjectSearchRoutes();
+  routes.push(...projectRoutes);
 
   // Add blog entries with their metadata
-  const blogRoutes = getBlogSearchRoutes()
-  routes.push(...blogRoutes)
+  const blogRoutes = getBlogSearchRoutes();
+  routes.push(...blogRoutes);
 
-  return routes
+  return routes;
 }
 
 /**
@@ -141,42 +148,42 @@ function getProjectSearchRoutes(): SearchableRoute[] {
   return projects.map((p) => ({
     path: `/projects/${p.name}`,
     displayName: `${p.name}.md`,
-    type: 'file' as const,
+    type: "file" as const,
     title: p.name,
     description: p.description,
-  }))
+  }));
 }
 
 /**
  * Get searchable routes for blog posts
  */
 function getBlogSearchRoutes(): SearchableRoute[] {
-  const posts = getAllBlogPosts()
+  const posts = getAllBlogPosts();
 
   return posts.map((post) => ({
     path: `/blog/${post.slug}`,
     displayName: `${post.slug}.md`,
-    type: 'file' as const,
+    type: "file" as const,
     title: post.title,
     description: post.description,
     tags: post.tags,
-  }))
+  }));
 }
 
 /**
  * Search routes by query
  */
 export function searchRoutes(query: string): SearchableRoute[] {
-  if (!query.trim()) return []
+  if (!query.trim()) return [];
 
-  const allRoutes = getAllRoutes()
-  const lowerQuery = query.toLowerCase()
+  const allRoutes = getAllRoutes();
+  const lowerQuery = query.toLowerCase();
 
   return allRoutes.filter((route) => {
-    if (route.displayName.toLowerCase().includes(lowerQuery)) return true
-    if (route.path.toLowerCase().includes(lowerQuery)) return true
-    if (route.title?.toLowerCase().includes(lowerQuery)) return true
-    if (route.description?.toLowerCase().includes(lowerQuery)) return true
-    return false
-  })
+    if (route.displayName.toLowerCase().includes(lowerQuery)) return true;
+    if (route.path.toLowerCase().includes(lowerQuery)) return true;
+    if (route.title?.toLowerCase().includes(lowerQuery)) return true;
+    if (route.description?.toLowerCase().includes(lowerQuery)) return true;
+    return false;
+  });
 }

@@ -1,5 +1,5 @@
 /* JetBrains Mono font from Google Fonts - must be first */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap");
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -78,7 +78,7 @@
   --cursor: #7aa2f7;
 
   /* Terminal-specific backgrounds */
-  --terminal-bg: rgba(8, 7, 28, 0.80);
+  --terminal-bg: rgba(8, 7, 28, 0.8);
   --wallpaper-overlay: rgba(17, 17, 27, 0.9);
 
   /* Catppuccin Mocha Base Colors */
@@ -222,10 +222,12 @@ pre {
 
 /* Cursor blink animation - vim style */
 @keyframes cursor-blink {
-  0%, 50% {
+  0%,
+  50% {
     opacity: 1;
   }
-  51%, 100% {
+  51%,
+  100% {
     opacity: 0;
   }
 }

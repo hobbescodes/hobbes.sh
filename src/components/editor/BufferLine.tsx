@@ -1,13 +1,13 @@
-import { type FC, type ReactNode, type CSSProperties } from 'react'
+import type { CSSProperties, FC, ReactNode } from "react";
 
 interface BufferLineProps {
-  children: ReactNode
+  children: ReactNode;
   /** Whether this line is currently selected */
-  isSelected: boolean
+  isSelected: boolean;
   /** Whether this line contains a link */
-  hasLink: boolean
+  hasLink: boolean;
   /** Additional inline styles */
-  style?: CSSProperties
+  style?: CSSProperties;
 }
 
 /**
@@ -25,15 +25,15 @@ export const BufferLine: FC<BufferLineProps> = ({
     <div
       style={{
         ...style,
-        backgroundColor: isSelected && hasLink ? 'var(--surface1)' : undefined,
+        backgroundColor: isSelected && hasLink ? "var(--surface1)" : undefined,
         // Extend the highlight to full width for better visual
-        marginLeft: isSelected && hasLink ? '-1rem' : undefined,
-        marginRight: isSelected && hasLink ? '-1rem' : undefined,
-        paddingLeft: isSelected && hasLink ? '1rem' : undefined,
-        paddingRight: isSelected && hasLink ? '1rem' : undefined,
+        marginLeft: isSelected && hasLink ? "-1rem" : undefined,
+        marginRight: isSelected && hasLink ? "-1rem" : undefined,
+        paddingLeft: isSelected && hasLink ? "1rem" : undefined,
+        paddingRight: isSelected && hasLink ? "1rem" : undefined,
       }}
     >
-      {children || '\u00A0'}
+      {children || "\u00A0"}
     </div>
-  )
-}
+  );
+};
