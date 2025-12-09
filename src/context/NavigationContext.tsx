@@ -134,6 +134,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({ children }) =>
         if (route.title?.toLowerCase().includes(lowerQuery)) return true
         // Match against description if available
         if (route.description?.toLowerCase().includes(lowerQuery)) return true
+        // Match against tags if available
+        if (route.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))) return true
         return false
       })
       .map((route: SearchableRoute) => ({

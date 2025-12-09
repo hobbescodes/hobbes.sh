@@ -1,4 +1,5 @@
 import type { RouteEntry } from '@/types'
+import { getAllBlogPosts } from './content'
 
 export const routeTree: RouteEntry = {
   name: 'hobbescodes',
@@ -89,6 +90,7 @@ export interface SearchableRoute {
   type: 'file' | 'directory'
   title?: string
   description?: string
+  tags?: string[]
 }
 
 /**
@@ -162,14 +164,18 @@ function getProjectSearchRoutes(): SearchableRoute[] {
 
 /**
  * Get searchable routes for blog posts
- * Note: Blog post data for search will be populated via the search overlay's loader
- * This returns an empty array since blog posts are loaded server-side from markdown files
  */
 function getBlogSearchRoutes(): SearchableRoute[] {
-  // Blog posts are now loaded from markdown files server-side
-  // The search functionality will need to receive blog data from a loader
-  // For now, return empty - search will be enhanced to receive this data
-  return []
+  const posts = getAllBlogPosts()
+
+  return posts.map((post) => ({
+    path: `/blog/${post.slug}`,
+    displayName: `${post.slug}.md`,
+    type: 'file' as const,
+    title: post.title,
+    description: post.description,
+    tags: post.tags,
+  }))
 }
 
 /**
