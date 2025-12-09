@@ -110,9 +110,16 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
           e.preventDefault();
           setCountBuffer("");
           if (currentPath !== "/") {
+            // Navigate to parent with current path as 'from'
             navigate({
               to: getParentPath(currentPath),
               search: { from: currentPath },
+            });
+          } else {
+            // Already at root - clear search params to reset cursor to top
+            navigate({
+              to: "/",
+              search: {},
             });
           }
           break;
