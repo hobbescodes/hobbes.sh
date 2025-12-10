@@ -78,14 +78,17 @@ const Left: FC<PaneProps> = ({ children }) => {
 
   return (
     <div
-      className="h-full overflow-hidden rounded transition-all duration-200"
+      className="relative h-full overflow-hidden transition-all duration-200"
       style={{
         width: "var(--left-width)",
         border: `1px solid ${borderColor}`,
-        opacity: isPreviewOpen && !isActive ? 0.6 : 1,
       }}
     >
       {children}
+      {/* Inactive overlay */}
+      {isPreviewOpen && !isActive && (
+        <div className="pointer-events-none absolute inset-1 bg-white opacity-5" />
+      )}
     </div>
   );
 };
@@ -107,14 +110,17 @@ const Right: FC<PaneProps> = ({ children }) => {
 
   return (
     <div
-      className="h-full overflow-hidden rounded transition-all duration-200"
+      className="relative h-full overflow-hidden transition-all duration-200"
       style={{
         width: "var(--right-width)",
         border: `1px solid var(${isActive ? "--blue" : "--surface2"})`,
-        opacity: !isActive ? 0.6 : 1,
       }}
     >
       {children}
+      {/* Inactive overlay */}
+      {!isActive && (
+        <div className="pointer-events-none absolute inset-1 bg-white opacity-5" />
+      )}
     </div>
   );
 };

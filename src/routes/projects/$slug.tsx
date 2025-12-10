@@ -1,6 +1,11 @@
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo } from "react";
+import {
+  createFileRoute,
+  notFound,
+  stripSearchParams,
+  useNavigate,
+} from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { Buffer } from "@/components/editor/Buffer";
 import { BufferLine } from "@/components/editor/BufferLine";
@@ -13,6 +18,15 @@ import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { featuredRepos, normalizeRepoConfig } from "@/lib/projects.config";
 import { seo } from "@/lib/seo";
 import { fetchProjectWithReadme } from "@/server/functions/github";
+import { getPreviewState, setPreviewState } from "@/server/functions/preview";
+
+interface ProjectSearchParams {
+  preview?: boolean;
+}
+
+const defaultSearch: ProjectSearchParams = {
+  preview: undefined,
+};
 
 /**
  * Query options for fetching a single project with README
@@ -35,14 +49,23 @@ function isValidProjectSlug(slug: string): boolean {
 
 export const Route = createFileRoute("/projects/$slug")({
   component: ProjectPage,
+  validateSearch: (search: Record<string, unknown>): ProjectSearchParams => ({
+    preview: search.preview === true || search.preview === "true" || undefined,
+  }),
+  search: {
+    middlewares: [stripSearchParams(defaultSearch)],
+  },
   loader: async ({ params, context }) => {
     // Validate slug is in featured repos list
     if (!isValidProjectSlug(params.slug)) {
       throw notFound();
     }
-    // Prefetch project data
-    await context.queryClient.ensureQueryData(projectQueryOptions(params.slug));
-    return { slug: params.slug };
+    // Prefetch project data and get initial preview state
+    const [, initialPreviewOpen] = await Promise.all([
+      context.queryClient.ensureQueryData(projectQueryOptions(params.slug)),
+      getPreviewState(),
+    ]);
+    return { slug: params.slug, initialPreviewOpen };
   },
   head: ({ params }) => {
     const { meta, links } = seo({
@@ -57,17 +80,40 @@ export const Route = createFileRoute("/projects/$slug")({
 
 function ProjectPage() {
   const { slug } = Route.useParams();
+  const { preview } = Route.useSearch();
+  const { initialPreviewOpen } = Route.useLoaderData();
   const navigate = useNavigate();
-  const { openPreview, closePreview, activePane } = usePane();
+  const { isPreviewOpen, openPreview, activePane, setOnCloseCallback } =
+    usePane();
 
   const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
 
-  // Close preview when navigating away from this page
+  // Track if we've already initialized to prevent re-opening after close
+  const hasInitialized = useRef(false);
+
+  // Initialize preview state from cookie/search param on first render
+  // Only run once to prevent re-opening after user closes
+  if (!hasInitialized.current) {
+    const shouldOpenPreview = preview || initialPreviewOpen;
+    if (shouldOpenPreview && !isPreviewOpen) {
+      openPreview(project.url);
+    }
+    hasInitialized.current = true;
+  }
+
+  // Register callback for when preview closes via ^a x or close button
+  // This syncs the URL and cookie when the context closes the preview
   useEffect(() => {
-    return () => {
-      closePreview();
+    const onPreviewClose = () => {
+      setPreviewState({ data: false });
+      navigate({ search: {} });
     };
-  }, [closePreview]);
+
+    setOnCloseCallback(onPreviewClose);
+
+    // Cleanup: unregister callback when component unmounts
+    return () => setOnCloseCallback(undefined);
+  }, [navigate, setOnCloseCallback]);
 
   // Build content array - memoized since it depends on project
   const content = useMemo(() => {
@@ -97,12 +143,14 @@ function ProjectPage() {
     ];
   }, [project]);
 
-  // Handler for Enter on link lines - opens preview pane instead of external link
+  // Handler for Enter on link lines - opens preview pane and updates URL/cookie
   const handleLinkEnter = useCallback(
     (url: string) => {
       openPreview(url);
+      setPreviewState({ data: true });
+      navigate({ search: { preview: true } });
     },
-    [openPreview],
+    [openPreview, navigate],
   );
 
   // Only enable buffer navigation when left pane is active

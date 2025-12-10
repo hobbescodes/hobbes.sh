@@ -20,6 +20,7 @@ export interface BlogPost {
 
 // Project types
 export interface Project {
+  owner: string;
   name: string;
   description: string;
   url: string;

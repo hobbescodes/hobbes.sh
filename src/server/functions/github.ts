@@ -52,8 +52,12 @@ interface GitHubReadmeResponse {
 /**
  * Transform GitHub API response to Project type
  */
-function transformRepoToProject(repo: GitHubRepoResponse): Project {
+function transformRepoToProject(
+  repo: GitHubRepoResponse,
+  owner: string,
+): Project {
   return {
+    owner,
     name: repo.name,
     description: repo.description ?? "No description provided",
     url: repo.html_url,
@@ -85,7 +89,7 @@ async function fetchRepositoryInternal(
   }
 
   const repoData: GitHubRepoResponse = await response.json();
-  return transformRepoToProject(repoData);
+  return transformRepoToProject(repoData, owner);
 }
 
 /**

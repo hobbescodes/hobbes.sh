@@ -22,6 +22,8 @@ interface PaneContextValue extends PaneState {
   openPreview: (url?: string) => void;
   closePreview: () => void;
   setActivePane: (pane: ActivePane) => void;
+  /** Register a callback to be called when preview closes (for URL/cookie sync) */
+  setOnCloseCallback: (callback: (() => void) | undefined) => void;
   // Leader key state for Ctrl+a sequences
   leaderActive: boolean;
 }
@@ -44,6 +46,16 @@ export const PaneProvider: FC<PaneProviderProps> = ({ children }) => {
   const [leaderActive, setLeaderActive] = useState(false);
   const leaderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Callback for when preview closes (for URL/cookie sync)
+  const onCloseCallbackRef = useRef<(() => void) | undefined>(undefined);
+
+  const setOnCloseCallback = useCallback(
+    (callback: (() => void) | undefined) => {
+      onCloseCallbackRef.current = callback;
+    },
+    [],
+  );
+
   // Open preview pane
   const openPreview = useCallback((url?: string) => {
     setPreviewUrl(url);
@@ -56,6 +68,8 @@ export const PaneProvider: FC<PaneProviderProps> = ({ children }) => {
     setIsPreviewOpen(false);
     setActivePaneInternal("left"); // Always return focus to content
     setPreviewUrl(undefined);
+    // Call the registered callback for URL/cookie sync
+    onCloseCallbackRef.current?.();
   }, []);
 
   // Set active pane (only if preview is open)
@@ -151,6 +165,7 @@ export const PaneProvider: FC<PaneProviderProps> = ({ children }) => {
     openPreview,
     closePreview,
     setActivePane,
+    setOnCloseCallback,
     leaderActive,
   };
 
