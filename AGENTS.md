@@ -702,3 +702,21 @@ bun knip       # Find unused files, exports, and dependencies
 10. **ASCII banner is "HobbesCodes"** - tiger/developer persona
 11. **Run `bun check` after completing changes** to catch linting and formatting issues. Run `bun check:fix` to auto-fix issues.
 12. **Run `bun knip` after completing changes** to ensure no unused code, exports, or dependencies were left behind. Use `/** @knipignore */` JSDoc tag to suppress false positives when necessary.
+13. **TanStack Start server functions** use `inputValidator` (not `validator`) for input validation:
+
+```tsx
+// Correct - use inputValidator
+export const myServerFn = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) => {
+    // validate and return typed data
+    return data as MyType;
+  })
+  .handler(async ({ data }) => {
+    // data is typed based on inputValidator return type
+  });
+
+// Incorrect - validator does not exist
+export const myServerFn = createServerFn({ method: "GET" })
+  .validator((data) => data)  // ❌ This will error
+  .handler(async ({ data }) => {});
+```

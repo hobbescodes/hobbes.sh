@@ -1,3 +1,4 @@
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo } from "react";
 
@@ -9,25 +10,45 @@ import { SplitPane } from "@/components/terminal/SplitPane";
 import { Terminal } from "@/components/terminal/Terminal";
 import { usePane } from "@/context/PaneContext";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
-import { getProjectBySlug } from "@/lib/projects";
+import { featuredRepos, normalizeRepoConfig } from "@/lib/projects.config";
 import { seo } from "@/lib/seo";
+import { fetchProjectWithReadme } from "@/server/functions/github";
+
+/**
+ * Query options for fetching a single project with README
+ */
+const projectQueryOptions = (slug: string) =>
+  queryOptions({
+    queryKey: ["project", slug],
+    queryFn: () => fetchProjectWithReadme({ data: slug }),
+  });
+
+/**
+ * Validate that a slug is in the featured repos list
+ */
+function isValidProjectSlug(slug: string): boolean {
+  return featuredRepos.some((config) => {
+    const { repo } = normalizeRepoConfig(config);
+    return repo === slug;
+  });
+}
 
 export const Route = createFileRoute("/projects/$slug")({
   component: ProjectPage,
-  loader: ({ params }) => {
-    const project = getProjectBySlug(params.slug);
-    if (!project) {
+  loader: async ({ params, context }) => {
+    // Validate slug is in featured repos list
+    if (!isValidProjectSlug(params.slug)) {
       throw notFound();
     }
-    return { project };
+    // Prefetch project data
+    await context.queryClient.ensureQueryData(projectQueryOptions(params.slug));
+    return { slug: params.slug };
   },
-  head: ({ loaderData }) => {
-    const { project } = loaderData;
+  head: ({ params }) => {
     const { meta, links } = seo({
-      title: project.name,
-      description: project.description,
-      url: `/projects/${project.name}`,
-      keywords: project.topics.join(", "),
+      title: params.slug,
+      description: `Project: ${params.slug}`,
+      url: `/projects/${params.slug}`,
     });
     return { meta, links };
   },
@@ -37,8 +58,9 @@ export const Route = createFileRoute("/projects/$slug")({
 function ProjectPage() {
   const { slug } = Route.useParams();
   const navigate = useNavigate();
-  const { project } = Route.useLoaderData();
   const { openPreview, closePreview, activePane } = usePane();
+
+  const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
 
   // Close preview when navigating away from this page
   useEffect(() => {

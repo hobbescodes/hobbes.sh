@@ -2,7 +2,7 @@ import {
   HeadContent,
   Outlet,
   Scripts,
-  createRootRoute,
+  createRootRouteWithContext,
 } from "@tanstack/react-router";
 
 import { NotFound } from "@/components/NotFound";
@@ -13,7 +13,13 @@ import { seo } from "@/lib/seo";
 import { getTheme } from "@/server/functions/theme";
 import appCss from "@/styles.css?url";
 
-export const Route = createRootRoute({
+import type { QueryClient } from "@tanstack/react-query";
+
+interface RouterContext {
+  queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => {
     const theme = await getTheme();
     return { theme };

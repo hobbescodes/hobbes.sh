@@ -82,6 +82,7 @@ const Left: FC<PaneProps> = ({ children }) => {
       style={{
         width: "var(--left-width)",
         border: `1px solid ${borderColor}`,
+        opacity: isPreviewOpen && !isActive ? 0.6 : 1,
       }}
     >
       {children}
@@ -110,6 +111,7 @@ const Right: FC<PaneProps> = ({ children }) => {
       style={{
         width: "var(--right-width)",
         border: `1px solid var(${isActive ? "--blue" : "--surface2"})`,
+        opacity: !isActive ? 0.6 : 1,
       }}
     >
       {children}

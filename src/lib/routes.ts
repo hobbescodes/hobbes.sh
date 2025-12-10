@@ -1,5 +1,5 @@
 import { getAllBlogPosts } from "@/lib/content";
-import { projects } from "@/lib/projects";
+import { featuredRepos, normalizeRepoConfig } from "@/lib/projects.config";
 
 import type { RouteEntry } from "@/types";
 
@@ -100,16 +100,22 @@ export function getAllRoutes(): SearchableRoute[] {
 
 /**
  * Get searchable routes for projects
- * Uses the centralized projects data from lib/projects.ts
+ * Uses the curated list from projects.config.ts
+ * Note: Full project metadata requires async GitHub API calls,
+ * so we only provide basic route info for search
  */
 function getProjectSearchRoutes(): SearchableRoute[] {
-  return projects.map((p) => ({
-    path: `/projects/${p.name}`,
-    displayName: `${p.name}.md`,
-    type: "file" as const,
-    title: p.name,
-    description: p.description,
-  }));
+  return featuredRepos.map((config) => {
+    const { repo, displayName } = normalizeRepoConfig(config);
+    const name = displayName ?? repo;
+    return {
+      path: `/projects/${repo}`,
+      displayName: `${repo}.md`,
+      type: "file" as const,
+      title: name,
+      description: `Project: ${name}`,
+    };
+  });
 }
 
 /**
