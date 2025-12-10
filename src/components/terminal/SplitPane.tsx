@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 
 import { usePane } from "@/context/PaneContext";
+import { cn } from "@/lib/utils";
 
 import type { FC, ReactNode } from "react";
 
@@ -24,7 +25,9 @@ interface PaneProps {
 }
 
 /**
- * SplitPane - A compound component for tmux-style vertical split panes
+ * SplitPane - A compound component for responsive split panes
+ * - Mobile/Tablet (< 1024px): Horizontal split (stacked top/bottom)
+ * - Desktop (>= 1024px): Vertical split (side-by-side)
  *
  * Usage:
  * ```tsx
@@ -38,23 +41,18 @@ interface PaneProps {
  * </SplitPane>
  * ```
  */
-const SplitPaneRoot: FC<SplitPaneProps> = ({
-  children,
-  leftWidth = "50%",
-  rightWidth = "50%",
-}) => {
+const SplitPaneRoot: FC<SplitPaneProps> = ({ children }) => {
   const { isPreviewOpen } = usePane();
 
   return (
     <SplitPaneContext.Provider value={{ isOpen: isPreviewOpen }}>
       <div
-        className="flex h-full gap-2 p-2"
-        style={
-          {
-            "--left-width": isPreviewOpen ? leftWidth : "100%",
-            "--right-width": isPreviewOpen ? rightWidth : "0%",
-          } as React.CSSProperties
-        }
+        className={cn(
+          "flex h-full gap-2 p-2",
+          // Horizontal split (stacked) on mobile/tablet when preview open
+          // Vertical split (side-by-side) on desktop
+          isPreviewOpen ? "3xl:flex-row flex-col" : "flex-row",
+        )}
       >
         {children}
       </div>
@@ -65,7 +63,7 @@ const SplitPaneRoot: FC<SplitPaneProps> = ({
 // Left pane (content/buffer)
 const Left: FC<PaneProps> = ({ children }) => {
   const context = useContext(SplitPaneContext);
-  const { activePane, isPreviewOpen } = usePane();
+  const { activePane, isPreviewOpen, setActivePane } = usePane();
 
   if (!context) {
     throw new Error("SplitPane.Left must be used within a SplitPane");
@@ -78,11 +76,14 @@ const Left: FC<PaneProps> = ({ children }) => {
 
   return (
     <div
-      className="relative h-full overflow-hidden transition-all duration-200"
+      className={cn(
+        "relative flex-1 overflow-hidden transition-all duration-200",
+        isPreviewOpen && "cursor-pointer",
+      )}
       style={{
-        width: "var(--left-width)",
         border: `1px solid ${borderColor}`,
       }}
+      onClick={() => setActivePane("left")}
     >
       {children}
       {/* Inactive overlay */}
@@ -96,7 +97,7 @@ const Left: FC<PaneProps> = ({ children }) => {
 // Right pane (preview)
 const Right: FC<PaneProps> = ({ children }) => {
   const context = useContext(SplitPaneContext);
-  const { activePane, isPreviewOpen } = usePane();
+  const { activePane, isPreviewOpen, setActivePane } = usePane();
 
   if (!context) {
     throw new Error("SplitPane.Right must be used within a SplitPane");
@@ -110,11 +111,11 @@ const Right: FC<PaneProps> = ({ children }) => {
 
   return (
     <div
-      className="relative h-full overflow-hidden transition-all duration-200"
+      className="relative flex-1 cursor-pointer overflow-hidden transition-all duration-200"
       style={{
-        width: "var(--right-width)",
         border: `1px solid var(${isActive ? "--blue" : "--surface2"})`,
       }}
+      onClick={() => setActivePane("right")}
     >
       {children}
       {/* Inactive overlay */}

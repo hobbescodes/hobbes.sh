@@ -147,10 +147,17 @@ body {
   color: var(--text);
 }
 
-/* Scrollbar styling for webkit browsers */
+/* Scrollbar styling for webkit browsers - responsive width */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 }
 
 ::-webkit-scrollbar-track {
@@ -164,6 +171,10 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--surface2);
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--mantle);
 }
 
 /* Code/pre styling */
@@ -187,6 +198,7 @@ pre {
 
 /* shadcn/ui theme configuration */
 @theme inline {
+  --breakpoint-3xl: 115rem;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 import type { FC, ReactNode } from "react";
 import type { RouteEntry } from "@/types";
 
@@ -21,7 +23,11 @@ export const OilEntry: FC<OilEntryProps> = ({
 
   return (
     <div
-      className="relative flex items-center leading-[1.6]"
+      className={cn(
+        "relative flex items-center leading-[1.6]",
+        onClick &&
+          "cursor-pointer transition-colors active:bg-[var(--surface0)]",
+      )}
       style={{ color: isSelected ? "var(--text)" : "var(--subtext1)" }}
       onClick={onClick}
     >
@@ -38,15 +44,16 @@ export const OilEntry: FC<OilEntryProps> = ({
         />
       )}
 
-      {/* Content with padding for cursor */}
-      <span className="pl-4">
-        <span style={{ color: isDirectory ? "var(--blue)" : undefined }}>
-          {displayText}
-        </span>
+      {/* Content with padding for cursor - filename */}
+      <span
+        className="min-w-0 flex-1 truncate pl-4"
+        style={{ color: isDirectory ? "var(--blue)" : undefined }}
+      >
+        {displayText}
       </span>
 
-      {/* Additional content (e.g., metadata) */}
-      {children}
+      {/* Additional content (e.g., metadata) - always visible */}
+      {children && <span className="shrink-0">{children}</span>}
     </div>
   );
 };

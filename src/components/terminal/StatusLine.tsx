@@ -49,7 +49,11 @@ export const StatusLine: FC<StatusLineProps> = ({
 
       {/* File path */}
       <div className="flex-1 truncate px-3" style={{ color: "var(--text)" }}>
-        {filepath}
+        {/* Show only filename on mobile, full path on sm+ */}
+        <span className="sm:hidden">
+          {filepath.split("/").pop() || filepath}
+        </span>
+        <span className="hidden sm:inline">{filepath}</span>
       </div>
 
       {/* Right side info */}
@@ -58,7 +62,8 @@ export const StatusLine: FC<StatusLineProps> = ({
         style={{ color: "var(--subtext0)" }}
       >
         <span>[{filetype}]</span>
-        <span>{encoding}</span>
+        {/* Hide encoding on small screens */}
+        <span className="hidden sm:inline">{encoding}</span>
         <span>
           {line}:{col}
         </span>

@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
 
+import { TitleBarActions } from "@/components/terminal/TitleBarActions";
+
 import type { FC } from "react";
 
 interface TitleBarProps {
@@ -66,7 +68,7 @@ export const TitleBar: FC<TitleBarProps> = ({ title }) => {
   return (
     <div className="flex h-8 select-none items-center border-[var(--surface0)] border-b bg-[var(--mantle)] px-3">
       {/* Traffic light buttons (decorative) */}
-      <div className="mr-4 flex items-center gap-2">
+      <div className="mr-4 hidden items-center gap-2 lg:flex">
         <div
           className="h-3 w-3 rounded-full"
           style={{ backgroundColor: "var(--red)" }}
@@ -82,7 +84,7 @@ export const TitleBar: FC<TitleBarProps> = ({ title }) => {
       </div>
 
       {/* Window title with clickable breadcrumb segments */}
-      <div className="flex-1 truncate text-center text-[var(--subtext0)] text-sm">
+      <div className="flex-1 truncate text-left text-[var(--subtext0)] text-sm lg:text-center">
         {segments.length === 0 ? (
           // Fallback for titles that don't match the expected format
           title
@@ -94,7 +96,7 @@ export const TitleBar: FC<TitleBarProps> = ({ title }) => {
                 {index > 0 && "/"}
                 {segment.route ? (
                   <span
-                    onClick={() => handleSegmentClick(segment.route)}
+                    onClick={() => handleSegmentClick(segment.route as string)}
                     className="underline"
                     style={{ cursor: "pointer" }}
                   >
@@ -109,8 +111,8 @@ export const TitleBar: FC<TitleBarProps> = ({ title }) => {
         )}
       </div>
 
-      {/* Spacer for symmetry */}
-      <div className="w-14" />
+      {/* Action buttons */}
+      <TitleBarActions />
     </div>
   );
 };

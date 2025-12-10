@@ -116,7 +116,12 @@ function BlogPage() {
                 className="ml-2 text-xs"
                 style={{ color: "var(--overlay0)" }}
               >
-                {posts[index].date} | {posts[index].readingTime}
+                {posts[index].date}
+                {/* Hide reading time on small screens */}
+                <span className="hidden sm:inline">
+                  {" "}
+                  | {posts[index].readingTime}
+                </span>
               </span>
             </OilEntry>
           ))}

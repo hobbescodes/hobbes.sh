@@ -15,8 +15,10 @@ interface BufferProps {
   contentLineCount?: number;
   /** Handler for clicking on a line (receives 1-indexed line number) */
   onLineClick?: (lineNumber: number) => void;
-  /** Handler for double-clicking on a line (receives 1-indexed line number) */
-  onLineDoubleClick?: (lineNumber: number) => void;
+  /** Handler for clicking on a link line (receives 1-indexed line number) */
+  onLinkClick?: (lineNumber: number) => void;
+  /** Function to check if a line has a link (receives 0-indexed line number) */
+  hasLinkAt?: (lineIndex: number) => boolean;
 }
 
 export const Buffer: FC<BufferProps> = ({
@@ -28,7 +30,8 @@ export const Buffer: FC<BufferProps> = ({
   className = "",
   contentLineCount,
   onLineClick,
-  onLineDoubleClick,
+  onLinkClick,
+  hasLinkAt,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -87,24 +90,19 @@ export const Buffer: FC<BufferProps> = ({
       const line = getClickedLine(e);
       if (line === null) return;
 
-      // If clicking the already-selected line, treat it like double-click (open link)
-      if (line === currentLine && onLineDoubleClick) {
-        onLineDoubleClick(line);
-      } else if (onLineClick) {
-        // Otherwise, move cursor to the clicked line
+      // Always move cursor to clicked line
+      if (onLineClick) {
         onLineClick(line);
       }
-    },
-    [onLineClick, onLineDoubleClick, getClickedLine, currentLine],
-  );
 
-  const handleDoubleClick = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      if (!onLineDoubleClick) return;
-      const line = getClickedLine(e);
-      if (line !== null) onLineDoubleClick(line);
+      // If clicking a line with a link, also trigger the link action
+      // This makes links single-clickable on mobile
+      const lineIndex = line - startLine;
+      if (onLinkClick && hasLinkAt && hasLinkAt(lineIndex)) {
+        onLinkClick(line);
+      }
     },
-    [onLineDoubleClick, getClickedLine],
+    [onLineClick, onLinkClick, getClickedLine, hasLinkAt, startLine],
   );
 
   return (
@@ -122,12 +120,11 @@ export const Buffer: FC<BufferProps> = ({
       )}
       <div
         ref={contentRef}
-        className="flex-1 px-4 py-0"
+        className="flex-1 whitespace-nowrap px-4 py-0"
         style={{
           lineHeight: "1.6",
         }}
         onClick={handleClick}
-        onDoubleClick={handleDoubleClick}
       >
         {children}
       </div>

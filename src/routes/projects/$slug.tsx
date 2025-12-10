@@ -83,8 +83,13 @@ function ProjectPage() {
   const { preview } = Route.useSearch();
   const { initialPreviewOpen } = Route.useLoaderData();
   const navigate = useNavigate();
-  const { isPreviewOpen, openPreview, activePane, setOnCloseCallback } =
-    usePane();
+  const {
+    isPreviewOpen,
+    openPreview,
+    closePreview,
+    activePane,
+    setOnCloseCallback,
+  } = usePane();
 
   const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
 
@@ -114,6 +119,13 @@ function ProjectPage() {
     // Cleanup: unregister callback when component unmounts
     return () => setOnCloseCallback(undefined);
   }, [navigate, setOnCloseCallback]);
+
+  // Close preview when navigating away from this project
+  useEffect(() => {
+    return () => {
+      closePreview();
+    };
+  }, [closePreview]);
 
   // Build content array - memoized since it depends on project
   const content = useMemo(() => {
@@ -164,12 +176,16 @@ function ProjectPage() {
     enabled: isLeftPaneActive,
   });
 
-  const handleLineDoubleClick = (lineNumber: number) => {
+  const handleLinkClick = (lineNumber: number) => {
     const lineProps = getLineProps(lineNumber - 1);
     if (lineProps.url) {
-      // Double-click still opens external link (gx behavior)
-      window.open(lineProps.url, "_blank", "noopener,noreferrer");
+      // Single click on link line opens preview pane
+      handleLinkEnter(lineProps.url);
     }
+  };
+
+  const hasLinkAt = (lineIndex: number): boolean => {
+    return getLineProps(lineIndex).hasLink;
   };
 
   return (
@@ -187,7 +203,8 @@ function ProjectPage() {
             currentLine={currentLine}
             contentLineCount={content.length}
             onLineClick={setCurrentLine}
-            onLineDoubleClick={handleLineDoubleClick}
+            onLinkClick={handleLinkClick}
+            hasLinkAt={hasLinkAt}
           >
             <div style={{ color: "var(--text)" }}>
               {content.map((line, i) => {

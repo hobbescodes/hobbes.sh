@@ -1,3 +1,4 @@
+import { ExternalLink, X } from "lucide-react";
 import { useState } from "react";
 
 import { Spinner } from "@/components/ui/Spinner";
@@ -42,24 +43,45 @@ export const ProjectPreview: FC<ProjectPreviewProps> = ({ project }) => {
     <div className="flex h-full flex-col overflow-hidden">
       {/* Preview header */}
       <div
-        className="flex items-center justify-between px-4 py-2"
+        className="flex items-center justify-between gap-2 px-4 py-2"
         style={{
           backgroundColor: "var(--mantle)",
           borderBottom: "1px solid var(--surface0)",
         }}
       >
-        <span className="font-bold text-sm" style={{ color: "var(--blue)" }}>
+        <span
+          className="truncate font-bold text-sm"
+          style={{ color: "var(--blue)" }}
+        >
           {project.name}
         </span>
-        <button
-          type="button"
-          onClick={handleClose}
-          className="flex h-5 w-5 items-center justify-center text-sm transition-colors hover:opacity-80"
-          style={{ color: "var(--overlay1)" }}
-          title="Close preview"
-        >
-          ✕
-        </button>
+
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Open in browser button */}
+          <a
+            href={previewUrl || project.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="-m-2 flex h-5 min-h-[44px] w-5 min-w-[44px] items-center justify-center text-sm transition-opacity hover:opacity-80 active:opacity-60 md:m-0 md:min-h-[auto] md:min-w-[auto]"
+            style={{ color: "var(--green)" }}
+            title="Open in new tab"
+            aria-label="Open repository in new tab"
+          >
+            <ExternalLink size={16} />
+          </a>
+
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={handleClose}
+            className="-m-2 flex h-5 min-h-[44px] w-5 min-w-[44px] items-center justify-center text-sm transition-opacity hover:opacity-80 active:opacity-60 md:m-0 md:min-h-[auto] md:min-w-[auto]"
+            style={{ color: "var(--overlay1)" }}
+            title="Close preview"
+            aria-label="Close preview"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Repository browser */}

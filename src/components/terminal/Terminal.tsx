@@ -41,7 +41,7 @@ export const Terminal: FC<TerminalProps> = ({
   return (
     // Outer container - centers the terminal with wallpaper background
     <div
-      className="relative flex min-h-screen w-screen items-center justify-center p-4 md:p-8"
+      className="relative flex min-h-[100dvh] min-h-screen w-screen items-center justify-center p-1 sm:p-2 md:p-4 lg:p-8"
       style={{
         backgroundImage: "url(/wallpaper.png)",
         backgroundSize: "cover",
@@ -57,7 +57,7 @@ export const Terminal: FC<TerminalProps> = ({
 
       {/* Terminal window */}
       <div
-        className="relative z-10 flex h-[80vh] w-[70vw] min-w-[600px] flex-col overflow-hidden rounded-lg shadow-2xl"
+        className="relative z-10 flex h-[95dvh] h-[95vh] w-full flex-col overflow-hidden rounded-lg shadow-2xl md:h-[92dvh] md:h-[92vh] md:w-[95vw] lg:h-[85dvh] lg:h-[85vh] lg:w-[80vw] xl:h-[80dvh] xl:h-[80vh] xl:w-[70vw]"
         style={{
           backgroundColor: "var(--terminal-bg)",
           border: "1px solid var(--surface0)",

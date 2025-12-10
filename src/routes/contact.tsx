@@ -32,11 +32,15 @@ function ContactPage() {
     onNavigateBack: () => navigate({ to: "/", search: { from: "/contact" } }),
   });
 
-  const handleLineDoubleClick = (lineNumber: number) => {
+  const handleLinkClick = (lineNumber: number) => {
     const lineProps = getLineProps(lineNumber - 1); // getLineProps uses 0-indexed
     if (lineProps.url) {
       window.open(lineProps.url, "_blank", "noopener,noreferrer");
     }
+  };
+
+  const hasLinkAt = (lineIndex: number): boolean => {
+    return getLineProps(lineIndex).hasLink;
   };
 
   return (
@@ -52,7 +56,8 @@ function ContactPage() {
         currentLine={currentLine}
         contentLineCount={content.length}
         onLineClick={setCurrentLine}
-        onLineDoubleClick={handleLineDoubleClick}
+        onLinkClick={handleLinkClick}
+        hasLinkAt={hasLinkAt}
       >
         <SyntaxHighlight
           content={content}
