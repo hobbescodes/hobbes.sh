@@ -39,8 +39,8 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
   const totalItems = hasParent ? entries.length + 1 : entries.length;
 
   // Compute and report current line when selection changes
-  // currentLine = startLine + 1 (for header) + selectedIndex
-  const currentLine = startLine + 1 + selectedIndex;
+  // currentLine = startLine + selectedIndex (no header anymore)
+  const currentLine = startLine + selectedIndex;
 
   // Report current line to parent via callback (legitimate external sync)
   useEffect(() => {
@@ -143,13 +143,6 @@ export const OilNavigator: FC<OilNavigatorProps> = ({
 
   return (
     <div className="flex flex-col leading-[1.6]">
-      {/* Current directory header */}
-      <div className="font-bold" style={{ color: "var(--blue)" }}>
-        {currentPath === "/"
-          ? "~/hobbescodes/"
-          : `~/hobbescodes${currentPath}/`}
-      </div>
-
       {/* Parent directory entry */}
       {hasParent && (
         <OilEntry

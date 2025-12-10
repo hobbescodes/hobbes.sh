@@ -51,13 +51,11 @@ function HomePage() {
   const oilStartLine = asciiLineCount + content.length + 1;
 
   // Current line is reported by OilNavigator via callback
-  const [currentLine, setCurrentLine] = useState(
-    oilStartLine + 1 + initialIndex,
-  );
+  const [currentLine, setCurrentLine] = useState(oilStartLine + initialIndex);
 
   const totalLines = oilStartLine + entries.length + 5;
-  // Content lines = ASCII + markdown content + oil header + entries
-  const contentLines = oilStartLine + 1 + entries.length;
+  // Content lines = ASCII + markdown content + entries (no header)
+  const contentLines = oilStartLine + entries.length;
 
   return (
     <Terminal

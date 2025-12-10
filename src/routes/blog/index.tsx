@@ -70,11 +70,11 @@ function BlogPage() {
     onNavigateToParent: () => navigate({ to: "/", search: { from: "/blog" } }),
   });
 
-  // Line calculation: header (1) + entries
-  const currentLine = selectedIndex + 2;
+  // Line calculation: entries (no header)
+  const currentLine = selectedIndex + 1;
   const totalLines = totalItems + 5;
-  // Content lines = header (1) + all entries
-  const contentLines = 1 + totalItems;
+  // Content lines = all entries (no header)
+  const contentLines = totalItems;
 
   return (
     <Terminal
@@ -90,11 +90,6 @@ function BlogPage() {
         contentLineCount={contentLines}
       >
         <div className="flex flex-col leading-[1.6]">
-          {/* Directory header */}
-          <div className="font-bold" style={{ color: "var(--blue)" }}>
-            ~/hobbescodes/blog/
-          </div>
-
           {/* Parent directory entry */}
           <OilEntry
             entry={{
