@@ -10,7 +10,7 @@ import { NavigationProvider } from "@/context/NavigationContext";
 import { PaneProvider } from "@/context/PaneContext";
 import ThemeProvider from "@/context/ThemeContext";
 import { seo } from "@/lib/seo";
-import { getTheme } from "@/server/functions/theme";
+import { getColorscheme } from "@/server/functions/theme";
 import appCss from "@/styles.css?url";
 
 import type { QueryClient } from "@tanstack/react-query";
@@ -21,8 +21,8 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => {
-    const theme = await getTheme();
-    return { theme };
+    const colorscheme = await getColorscheme();
+    return { colorscheme };
   },
   notFoundComponent: NotFound,
   head: () => {
@@ -41,15 +41,15 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootComponent() {
-  const { theme } = Route.useRouteContext();
+  const { colorscheme } = Route.useRouteContext();
 
   return (
-    <html lang="en" className={theme}>
+    <html lang="en" className={colorscheme}>
       <head>
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider theme={theme}>
+        <ThemeProvider colorscheme={colorscheme}>
           <NavigationProvider>
             <PaneProvider>
               <Outlet />

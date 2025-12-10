@@ -6,12 +6,18 @@ import { useTheme } from "@/context/ThemeContext";
 import type { FC } from "react";
 
 /**
- * Action buttons for the title bar (theme toggle, help, search)
+ * Action buttons for the title bar (colorscheme, help, search)
  * Designed to be terminal-friendly and mobile-accessible
  */
 export const TitleBarActions: FC = () => {
-  const { theme, toggleTheme } = useTheme();
-  const { setMode, setShowHelp, showHelp } = useNavigation();
+  const { colorscheme } = useTheme();
+  const {
+    setMode,
+    setShowHelp,
+    showHelp,
+    setShowColorscheme,
+    showColorscheme,
+  } = useNavigation();
 
   const handleHelpClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -25,11 +31,14 @@ export const TitleBarActions: FC = () => {
     setMode("SEARCH");
   };
 
-  const handleThemeToggle = (e: React.MouseEvent) => {
+  const handleColorschemeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleTheme();
+    setShowColorscheme(!showColorscheme);
   };
+
+  // Determine icon based on current colorscheme
+  const isLight = colorscheme === "latte";
 
   // Base button styles - ensures proper tap targets on mobile
   const buttonClass = `
@@ -64,16 +73,16 @@ export const TitleBarActions: FC = () => {
         <CircleHelp size={16} />
       </button>
 
-      {/* Theme toggle button */}
+      {/* Theme button */}
       <button
         type="button"
-        onClick={handleThemeToggle}
+        onClick={handleColorschemeClick}
         className={buttonClass}
         style={{ color: "var(--subtext0)" }}
-        title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-        aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        title="Theme (or :theme)"
+        aria-label="Open theme picker"
       >
-        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+        {isLight ? <Sun size={16} /> : <Moon size={16} />}
       </button>
     </div>
   );

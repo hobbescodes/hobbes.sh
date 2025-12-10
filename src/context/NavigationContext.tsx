@@ -13,6 +13,19 @@ import { getAllRoutes, searchRoutes } from "@/lib/routes";
 
 import type { FC, ReactNode } from "react";
 import type { SearchableRoute } from "@/lib/routes";
+import type { Colorscheme } from "@/types";
+
+// Valid colorscheme names and aliases
+const COLORSCHEME_ALIASES: Record<string, Colorscheme> = {
+  ghostty: "ghostty",
+  ghost: "ghostty",
+  "👻": "ghostty",
+  mocha: "mocha",
+  macchiato: "macchiato",
+  frappe: "frappe",
+  frappé: "frappe",
+  latte: "latte",
+};
 
 // Types
 export type NavigationMode = "NORMAL" | "COMMAND" | "SEARCH" | "GAME";
@@ -60,6 +73,10 @@ interface NavigationContextValue {
   // Help overlay
   showHelp: boolean;
   setShowHelp: (show: boolean) => void;
+
+  // Colorscheme overlay
+  showColorscheme: boolean;
+  setShowColorscheme: (show: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -130,6 +147,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
   // Help overlay
   const [showHelp, setShowHelp] = useState(false);
+
+  // Colorscheme overlay
+  const [showColorscheme, setShowColorscheme] = useState(false);
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
   const [countBuffer, setCountBuffer] = useState("");
@@ -234,11 +254,40 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
         setCommandError(`E32: Can't find file "${pathArg}"`);
       }
     } else if (cmdLower === "sane") {
-      window.dispatchEvent(new CustomEvent("theme-set", { detail: "dark" }));
+      // :sane sets to ghostty (default dark)
+      window.dispatchEvent(
+        new CustomEvent("colorscheme-set", { detail: "ghostty" }),
+      );
       setMode("NORMAL");
     } else if (cmdLower === "insane") {
-      window.dispatchEvent(new CustomEvent("theme-set", { detail: "light" }));
+      // :insane sets to latte (light)
+      window.dispatchEvent(
+        new CustomEvent("colorscheme-set", { detail: "latte" }),
+      );
       setMode("NORMAL");
+    } else if (cmdLower === "theme" || cmdLower === "themes") {
+      // :theme with no args opens the picker
+      setMode("NORMAL");
+      setShowColorscheme(true);
+    } else if (
+      cmdLower.startsWith("theme ") ||
+      cmdLower.startsWith("themes ")
+    ) {
+      // :theme <name> sets the colorscheme
+      const colorArg = cmd
+        .replace(/^themes?\s+/i, "")
+        .trim()
+        .toLowerCase();
+
+      const colorscheme = COLORSCHEME_ALIASES[colorArg];
+      if (colorscheme) {
+        window.dispatchEvent(
+          new CustomEvent("colorscheme-set", { detail: colorscheme }),
+        );
+        setMode("NORMAL");
+      } else {
+        setCommandError(`E185: Cannot find colorscheme "${colorArg}"`);
+      }
     } else if (cmdLower === "snake") {
       navigate({ to: "/game/snake", search: {} });
       setMode("NORMAL");
@@ -474,6 +523,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     }
     setMode("NORMAL");
     setShowHelp(false);
+    setShowColorscheme(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -496,6 +546,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setPendingOperator,
     showHelp,
     setShowHelp,
+    showColorscheme,
+    setShowColorscheme,
   };
 
   return (

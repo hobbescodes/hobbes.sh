@@ -1,6 +1,7 @@
 import { CommandLine } from "@/components/editor/CommandLine";
 import { StatusLine } from "@/components/terminal/StatusLine";
 import { TitleBar } from "@/components/terminal/TitleBar";
+import { ColorschemeOverlay } from "@/components/ui/ColorschemeOverlay";
 import { HelpOverlay } from "@/components/ui/HelpOverlay";
 import { SearchOverlay } from "@/components/ui/SearchOverlay";
 import { useNavigation } from "@/context/NavigationContext";
@@ -36,6 +37,8 @@ export const Terminal: FC<TerminalProps> = ({
     selectedSearchIndex,
     showHelp,
     setShowHelp,
+    showColorscheme,
+    setShowColorscheme,
   } = useNavigation();
 
   return (
@@ -101,6 +104,11 @@ export const Terminal: FC<TerminalProps> = ({
             selectedIndex={selectedSearchIndex}
             onClose={() => setMode("NORMAL")}
           />
+        )}
+
+        {/* Colorscheme overlay */}
+        {showColorscheme && (
+          <ColorschemeOverlay onClose={() => setShowColorscheme(false)} />
         )}
       </div>
     </div>

@@ -92,6 +92,8 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                 <KeyBinding keys=":q" description="Go home" />
                 <KeyBinding keys=":e <path>" description="Open file" />
                 <KeyBinding keys=":help" description="Show help" />
+                <KeyBinding keys=":theme" description="Theme picker" />
+                <KeyBinding keys=":theme <name>" description="Set theme" />
               </div>
             </div>
 
