@@ -3,6 +3,7 @@ const SITE_URL = "https://hobbes.sh";
 const DEFAULT_DESCRIPTION =
   "Software engineer and tiger enthusiast. Building things on the internet.";
 const TWITTER_HANDLE = "@hobbescodes";
+const THEME_COLOR = "#08071c";
 
 interface SeoOptions {
   title: string;
@@ -34,6 +35,7 @@ export function seo({
     { title: fullTitle },
     { name: "description", content: description },
     ...(keywords ? [{ name: "keywords", content: keywords }] : []),
+    { name: "theme-color", content: THEME_COLOR },
 
     // Open Graph
     { property: "og:type", content: type },
@@ -70,7 +72,30 @@ export function seo({
       : []),
   ];
 
-  const links = canonicalUrl ? [{ rel: "canonical", href: canonicalUrl }] : [];
+  const links = [
+    // Favicons
+    { rel: "icon", href: "/favicon.ico" },
+    {
+      rel: "icon",
+      type: "image/png",
+      sizes: "32x32",
+      href: "/favicon-32x32.png",
+    },
+    {
+      rel: "icon",
+      type: "image/png",
+      sizes: "16x16",
+      href: "/favicon-16x16.png",
+    },
+    {
+      rel: "apple-touch-icon",
+      sizes: "180x180",
+      href: "/apple-touch-icon.png",
+    },
+    { rel: "manifest", href: "/manifest.json" },
+    // Canonical URL
+    ...(canonicalUrl ? [{ rel: "canonical", href: canonicalUrl }] : []),
+  ];
 
   return { meta, links };
 }

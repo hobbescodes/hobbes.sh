@@ -33,11 +33,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         ...meta,
       ],
-      links: [
-        { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: "/favicon.ico" },
-        ...links,
-      ],
+      links: [{ rel: "stylesheet", href: appCss }, ...links],
     };
   },
 
