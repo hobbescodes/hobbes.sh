@@ -44,7 +44,7 @@ spending way too much time perfecting my terminal setup.
 ## Fun Facts
 
 - I love tigers. From Tigger to Hobbes (Calvin and Hobbes), they are the best.
-- I love in keyboard-driven workflows
+- I love keyboard-driven workflows
 
 ## Philosophy
 
