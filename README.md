@@ -1,4 +1,4 @@
-# HobbesCodes Personal Website
+# hobbescodes Personal Website
 
 A terminal-inspired personal website that mimics **Ghostty + Neovim + oil.nvim**, built with TanStack Start and Tailwind v4.
 

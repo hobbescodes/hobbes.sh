@@ -18,7 +18,7 @@ This is a personal website designed to look and feel like a Ghostty terminal run
 
 ### Persona
 
-The site owner's online persona is a **tiger that is also a developer/programmer**. ASCII art and branding should reflect this theme. The brand name is **HobbesCodes**.
+The site owner's online persona is a **tiger that is also a developer/programmer**. ASCII art and branding should reflect this theme. The brand name is **hobbescodes**.
 
 ---
 
@@ -156,7 +156,7 @@ src/
 │   ├── content.ts                 # Markdown content loading utilities
 │   ├── routes.ts                  # Route tree for oil navigation
 │   ├── ascii/
-│   │   └── hobbes.ts              # HobbesCodes ASCII art
+│   │   └── hobbes.ts              # hobbescodes ASCII art
 │   └── utils.ts                   # Shared utilities
 │
 ├── routes/
@@ -441,14 +441,14 @@ Content is loaded via `src/lib/content.ts`:
 
 ---
 
-## ASCII Art: HobbesCodes Banner
+## ASCII Art: hobbescodes Banner
 
 ```
-  _   _       _     _                ____          _           
- | | | | ___ | |__ | |__   ___  ___ / ___|___   __| | ___  ___ 
- | |_| |/ _ \| '_ \| '_ \ / _ \/ __| |   / _ \ / _` |/ _ \/ __|
- |  _  | (_) | |_) | |_) |  __/\__ \ |__| (_) | (_| |  __/\__ \
- |_| |_|\___/|_.__/|_.__/ \___||___/\____\___/ \__,_|\___||___/
+ _           _     _                          _           
+| |__   ___ | |__ | |__   ___  ___  ___ ___ __| | ___  ___ 
+| '_ \ / _ \| '_ \| '_ \ / _ \/ __|/ __/ _ \/ _` |/ _ \/ __|
+| | | | (_) | |_) | |_) |  __/\__ \ (_| (_) | (_| |  __/\__ \
+|_| |_|\___/|_.__/|_.__/ \___||___/\___\___/ \__,_|\___||___/
 ```
 
 ---
@@ -480,7 +480,7 @@ Content is loaded via `src/lib/content.ts`:
    - [x] Handle content overflow/scrolling
 
 4. **Home Page**
-   - [x] Create ASCII art HobbesCodes component
+   - [x] Create ASCII art hobbescodes component
    - [x] Build welcome message content
    - [x] Integrate oil navigator on home page
    - [x] Show navigation instructions
@@ -699,7 +699,7 @@ bun knip       # Find unused files, exports, and dependencies
 7. **Status line format is fixed** - don't deviate from the specified layout
 8. **Oil navigation uses j/k/Enter/-** - these are non-negotiable keybindings
 9. **Add shadcn components incrementally** via `bunx shadcn@latest add <component>`
-10. **ASCII banner is "HobbesCodes"** - tiger/developer persona
+10. **ASCII banner is "hobbescodes"** - tiger/developer persona
 11. **Run `bun check` after completing changes** to catch linting and formatting issues. Run `bun check:fix` to auto-fix issues.
 12. **Run `bun knip` after completing changes** to ensure no unused code, exports, or dependencies were left behind. Use `/** @knipignore */` JSDoc tag to suppress false positives when necessary.
 13. **TanStack Start server functions** use `inputValidator` (not `validator`) for input validation:
