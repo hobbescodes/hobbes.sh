@@ -30,7 +30,7 @@ export const featuredRepos: (string | FeaturedRepoConfig)[] = [
   // Personal projects
   "foundry-fund-me",
 
-  // OSS contributions
+  // OSS contributions (requires org access granted to GITHUB_TOKEN)
   { owner: "omnidotdev", repo: "backfeed-app", displayName: "Backfeed" },
   { owner: "omnidotdev", repo: "garden", displayName: "Garden" },
 ];

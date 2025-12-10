@@ -21,7 +21,8 @@ function getGitHubHeaders(): HeadersInit {
   // Use GITHUB_TOKEN env var if available for higher rate limits
   const token = process.env.GITHUB_TOKEN;
   if (token) {
-    headers.Authorization = `Bearer ${token}`;
+    // GitHub Personal Access Tokens use 'token' prefix, not 'Bearer'
+    headers.Authorization = `token ${token}`;
   }
 
   return headers;
@@ -83,9 +84,36 @@ async function fetchRepositoryInternal(
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch repository ${owner}/${repo}: ${response.status} ${response.statusText}`,
-    );
+    // Get more detailed error info
+    let errorMessage = `Failed to fetch repository ${owner}/${repo}: ${response.status} ${response.statusText}`;
+
+    try {
+      const errorBody = await response.json();
+      if (errorBody.message) {
+        errorMessage += ` - ${errorBody.message}`;
+      }
+
+      // Add helpful hint for authentication errors
+      if (response.status === 401) {
+        const hasToken = !!process.env.GITHUB_TOKEN;
+        if (hasToken) {
+          errorMessage +=
+            "\n\nYour GITHUB_TOKEN appears to be invalid. Please check:\n";
+          errorMessage += "1. Token is not expired\n";
+          errorMessage += "2. Token has no extra whitespace in .env file\n";
+          errorMessage +=
+            "3. Token starts with 'ghp_' (classic PAT) or 'github_pat_' (fine-grained PAT)\n";
+          errorMessage += "4. Dev server was restarted after adding token";
+        } else {
+          errorMessage +=
+            "\n\nNo GITHUB_TOKEN found. Set GITHUB_TOKEN in your .env file to avoid rate limits.";
+        }
+      }
+    } catch {
+      // Ignore JSON parse errors
+    }
+
+    throw new Error(errorMessage);
   }
 
   const repoData: GitHubRepoResponse = await response.json();
