@@ -28,7 +28,7 @@ export interface FeaturedRepoConfig {
  */
 export const featuredRepos: (string | FeaturedRepoConfig)[] = [
   // Personal projects
-  "foundry-fund-me",
+  "hobbes.sh",
 
   // OSS contributions (requires org access granted to GITHUB_TOKEN)
   { owner: "omnidotdev", repo: "backfeed-app", displayName: "Backfeed" },
