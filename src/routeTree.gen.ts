@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
+import { Route as GameTermRouteImport } from './routes/game/term'
 import { Route as GameSnakeRouteImport } from './routes/game/snake'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 
@@ -54,6 +55,11 @@ const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
   path: '/projects/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GameTermRoute = GameTermRouteImport.update({
+  id: '/game/term',
+  path: '/game/term',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GameSnakeRoute = GameSnakeRouteImport.update({
   id: '/game/snake',
   path: '/game/snake',
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/game/snake': typeof GameSnakeRoute
+  '/game/term': typeof GameTermRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/blog': typeof BlogIndexRoute
   '/projects': typeof ProjectsIndexRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/game/snake': typeof GameSnakeRoute
+  '/game/term': typeof GameTermRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/blog': typeof BlogIndexRoute
   '/projects': typeof ProjectsIndexRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/game/snake': typeof GameSnakeRoute
+  '/game/term': typeof GameTermRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/projects/': typeof ProjectsIndexRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/blog/$slug'
     | '/game/snake'
+    | '/game/term'
     | '/projects/$slug'
     | '/blog'
     | '/projects'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/blog/$slug'
     | '/game/snake'
+    | '/game/term'
     | '/projects/$slug'
     | '/blog'
     | '/projects'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/blog/$slug'
     | '/game/snake'
+    | '/game/term'
     | '/projects/$slug'
     | '/blog/'
     | '/projects/'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   BlogSlugRoute: typeof BlogSlugRoute
   GameSnakeRoute: typeof GameSnakeRoute
+  GameTermRoute: typeof GameTermRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/game/term': {
+      id: '/game/term'
+      path: '/game/term'
+      fullPath: '/game/term'
+      preLoaderRoute: typeof GameTermRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/game/snake': {
       id: '/game/snake'
       path: '/game/snake'
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   BlogSlugRoute: BlogSlugRoute,
   GameSnakeRoute: GameSnakeRoute,
+  GameTermRoute: GameTermRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,

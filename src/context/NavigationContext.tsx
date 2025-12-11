@@ -305,6 +305,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     } else if (cmdLower === "snake") {
       navigate({ to: "/game/snake", search: {} });
       setMode("NORMAL");
+    } else if (cmdLower === "term" || cmdLower === "terminal") {
+      navigate({ to: "/game/term", search: {} });
+      setMode("NORMAL");
     } else if (cmdLower === "marks") {
       // :marks opens the marks overlay
       setMode("NORMAL");
