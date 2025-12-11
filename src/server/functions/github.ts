@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import { featuredRepos, normalizeRepoConfig } from "@/lib/projects.config";
+import { getAllFeaturedRepos, getReposByCategory } from "@/lib/projects.config";
 
+import type { ProjectCategory } from "@/lib/projects.config";
 import type { Project, ProjectWithReadme } from "@/types";
 
 /**
@@ -151,32 +152,34 @@ async function fetchReadmeInternal(
 }
 
 /**
- * Server function to fetch all featured projects from GitHub API
+ * Server function to fetch projects for a specific category
  */
-export const fetchProjects = createServerFn({ method: "GET" }).handler(
-  async (): Promise<Project[]> => {
+export const fetchProjectsByCategory = createServerFn({ method: "GET" })
+  .inputValidator((category: unknown): ProjectCategory => {
+    if (
+      category !== "owned" &&
+      category !== "omnidotdev" &&
+      category !== "contrib"
+    ) {
+      throw new Error("Invalid category");
+    }
+    return category;
+  })
+  .handler(async ({ data: category }): Promise<Project[]> => {
+    const repos = getReposByCategory(category);
     const projects = await Promise.all(
-      featuredRepos.map((config) => {
-        const { owner, repo } = normalizeRepoConfig(config);
-        return fetchRepositoryInternal(owner, repo);
-      }),
+      repos.map(({ owner, repo }) => fetchRepositoryInternal(owner, repo)),
     );
 
     return projects;
-  },
-);
+  });
 
 /**
  * Find a repo config by slug (repo name)
  */
 function findRepoBySlug(slug: string) {
-  for (const config of featuredRepos) {
-    const normalized = normalizeRepoConfig(config);
-    if (normalized.repo === slug) {
-      return normalized;
-    }
-  }
-  return null;
+  const allRepos = getAllFeaturedRepos();
+  return allRepos.find((config) => config.repo === slug) ?? null;
 }
 
 /**

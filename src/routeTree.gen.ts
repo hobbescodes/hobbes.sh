@@ -15,6 +15,9 @@ import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProjectsIndexRouteImport } from './routes/projects/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as ProjectsOwnedRouteImport } from './routes/projects/owned'
+import { Route as ProjectsOmnidotdevRouteImport } from './routes/projects/omnidotdev'
+import { Route as ProjectsContribRouteImport } from './routes/projects/contrib'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as GameTermRouteImport } from './routes/game/term'
 import { Route as GameSnakeRouteImport } from './routes/game/snake'
@@ -50,6 +53,21 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsOwnedRoute = ProjectsOwnedRouteImport.update({
+  id: '/projects/owned',
+  path: '/projects/owned',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsOmnidotdevRoute = ProjectsOmnidotdevRouteImport.update({
+  id: '/projects/omnidotdev',
+  path: '/projects/omnidotdev',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsContribRoute = ProjectsContribRouteImport.update({
+  id: '/projects/contrib',
+  path: '/projects/contrib',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
   id: '/projects/$slug',
   path: '/projects/$slug',
@@ -80,6 +98,9 @@ export interface FileRoutesByFullPath {
   '/game/snake': typeof GameSnakeRoute
   '/game/term': typeof GameTermRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/projects/contrib': typeof ProjectsContribRoute
+  '/projects/omnidotdev': typeof ProjectsOmnidotdevRoute
+  '/projects/owned': typeof ProjectsOwnedRoute
   '/blog': typeof BlogIndexRoute
   '/projects': typeof ProjectsIndexRoute
 }
@@ -92,6 +113,9 @@ export interface FileRoutesByTo {
   '/game/snake': typeof GameSnakeRoute
   '/game/term': typeof GameTermRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/projects/contrib': typeof ProjectsContribRoute
+  '/projects/omnidotdev': typeof ProjectsOmnidotdevRoute
+  '/projects/owned': typeof ProjectsOwnedRoute
   '/blog': typeof BlogIndexRoute
   '/projects': typeof ProjectsIndexRoute
 }
@@ -105,6 +129,9 @@ export interface FileRoutesById {
   '/game/snake': typeof GameSnakeRoute
   '/game/term': typeof GameTermRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/projects/contrib': typeof ProjectsContribRoute
+  '/projects/omnidotdev': typeof ProjectsOmnidotdevRoute
+  '/projects/owned': typeof ProjectsOwnedRoute
   '/blog/': typeof BlogIndexRoute
   '/projects/': typeof ProjectsIndexRoute
 }
@@ -119,6 +146,9 @@ export interface FileRouteTypes {
     | '/game/snake'
     | '/game/term'
     | '/projects/$slug'
+    | '/projects/contrib'
+    | '/projects/omnidotdev'
+    | '/projects/owned'
     | '/blog'
     | '/projects'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +161,9 @@ export interface FileRouteTypes {
     | '/game/snake'
     | '/game/term'
     | '/projects/$slug'
+    | '/projects/contrib'
+    | '/projects/omnidotdev'
+    | '/projects/owned'
     | '/blog'
     | '/projects'
   id:
@@ -143,6 +176,9 @@ export interface FileRouteTypes {
     | '/game/snake'
     | '/game/term'
     | '/projects/$slug'
+    | '/projects/contrib'
+    | '/projects/omnidotdev'
+    | '/projects/owned'
     | '/blog/'
     | '/projects/'
   fileRoutesById: FileRoutesById
@@ -156,6 +192,9 @@ export interface RootRouteChildren {
   GameSnakeRoute: typeof GameSnakeRoute
   GameTermRoute: typeof GameTermRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
+  ProjectsContribRoute: typeof ProjectsContribRoute
+  ProjectsOmnidotdevRoute: typeof ProjectsOmnidotdevRoute
+  ProjectsOwnedRoute: typeof ProjectsOwnedRoute
   BlogIndexRoute: typeof BlogIndexRoute
   ProjectsIndexRoute: typeof ProjectsIndexRoute
 }
@@ -204,6 +243,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/owned': {
+      id: '/projects/owned'
+      path: '/projects/owned'
+      fullPath: '/projects/owned'
+      preLoaderRoute: typeof ProjectsOwnedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/omnidotdev': {
+      id: '/projects/omnidotdev'
+      path: '/projects/omnidotdev'
+      fullPath: '/projects/omnidotdev'
+      preLoaderRoute: typeof ProjectsOmnidotdevRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects/contrib': {
+      id: '/projects/contrib'
+      path: '/projects/contrib'
+      fullPath: '/projects/contrib'
+      preLoaderRoute: typeof ProjectsContribRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects/$slug': {
       id: '/projects/$slug'
       path: '/projects/$slug'
@@ -244,6 +304,9 @@ const rootRouteChildren: RootRouteChildren = {
   GameSnakeRoute: GameSnakeRoute,
   GameTermRoute: GameTermRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
+  ProjectsContribRoute: ProjectsContribRoute,
+  ProjectsOmnidotdevRoute: ProjectsOmnidotdevRoute,
+  ProjectsOwnedRoute: ProjectsOwnedRoute,
   BlogIndexRoute: BlogIndexRoute,
   ProjectsIndexRoute: ProjectsIndexRoute,
 }

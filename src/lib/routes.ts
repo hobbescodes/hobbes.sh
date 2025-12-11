@@ -1,5 +1,9 @@
 import { getAllBlogPosts } from "@/lib/content";
-import { featuredRepos, normalizeRepoConfig } from "@/lib/projects.config";
+import {
+  PROJECT_CATEGORIES,
+  getAllFeaturedRepos,
+  normalizeRepoConfig,
+} from "@/lib/projects.config";
 
 import type { RouteEntry } from "@/types";
 
@@ -22,7 +26,12 @@ export const routeTree: RouteEntry = {
       displayName: "projects/",
       type: "directory",
       path: "/projects",
-      children: [], // Populated dynamically
+      children: PROJECT_CATEGORIES.map((category) => ({
+        name: category,
+        displayName: `${category}/`,
+        type: "directory" as const,
+        path: `/projects/${category}`,
+      })),
     },
     {
       name: "blog",
@@ -105,7 +114,8 @@ export function getAllRoutes(): SearchableRoute[] {
  * so we only provide basic route info for search
  */
 function getProjectSearchRoutes(): SearchableRoute[] {
-  return featuredRepos.map((config) => {
+  const allRepos = getAllFeaturedRepos();
+  return allRepos.map((config) => {
     const { repo, displayName } = normalizeRepoConfig(config);
     const name = displayName ?? repo;
     return {

@@ -15,7 +15,7 @@ import { SplitPane } from "@/components/terminal/SplitPane";
 import { Terminal } from "@/components/terminal/Terminal";
 import { usePane } from "@/context/PaneContext";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
-import { featuredRepos, normalizeRepoConfig } from "@/lib/projects.config";
+import { getAllFeaturedRepos, getCategoryForRepo } from "@/lib/projects.config";
 import { seo } from "@/lib/seo";
 import { fetchProjectWithReadme } from "@/server/functions/github";
 import { getPreviewState, setPreviewState } from "@/server/functions/preview";
@@ -41,10 +41,8 @@ const projectQueryOptions = (slug: string) =>
  * Validate that a slug is in the featured repos list
  */
 function isValidProjectSlug(slug: string): boolean {
-  return featuredRepos.some((config) => {
-    const { repo } = normalizeRepoConfig(config);
-    return repo === slug;
-  });
+  const allRepos = getAllFeaturedRepos();
+  return allRepos.some((config) => config.repo === slug);
 }
 
 export const Route = createFileRoute("/projects/$slug")({
@@ -168,10 +166,16 @@ function ProjectPage() {
   // Only enable buffer navigation when left pane is active
   const isLeftPaneActive = activePane === "left";
 
+  // Determine which category this project belongs to for back navigation
+  const projectCategory = getCategoryForRepo(slug);
+  const backPath = projectCategory
+    ? `/projects/${projectCategory}`
+    : "/projects";
+
   const { currentLine, setCurrentLine, getLineProps } = useBufferNavigation({
     content,
     onNavigateBack: () =>
-      navigate({ to: "/projects", search: { from: `/projects/${slug}` } }),
+      navigate({ to: backPath, search: { from: `/projects/${slug}` } }),
     onLinkEnter: handleLinkEnter,
     enabled: isLeftPaneActive,
   });
