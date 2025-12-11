@@ -31,6 +31,7 @@ export const featuredRepos: (string | FeaturedRepoConfig)[] = [
   "hobbes.sh",
 
   // OSS contributions (requires org access granted to GITHUB_TOKEN)
+  { owner: "omnidotdev", repo: "rdk", displayName: "RDK" },
   { owner: "omnidotdev", repo: "backfeed-app", displayName: "Backfeed" },
   { owner: "omnidotdev", repo: "garden", displayName: "Garden" },
 ];
