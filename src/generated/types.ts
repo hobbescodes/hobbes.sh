@@ -19,7 +19,10 @@ export type RepositoryFieldsFragment = {
       }
     }> | null
   }
-  owner: unknown
+  owner: {
+      __typename: string
+    login: string
+    }
 }
 
 // Operation Types
@@ -51,6 +54,9 @@ export type GetRepositoryWithReadmeQueryVariables = {
 
 export type GetRepositoryWithReadmeQuery = {
   repository: RepositoryFieldsFragment & {
-    object: unknown | null
+    object: {
+        __typename: "Blob"
+      text: string | null
+      } | null
   } | null
 }
