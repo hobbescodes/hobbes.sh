@@ -8,11 +8,13 @@ import { ColorschemeOverlay } from "@/components/ui/ColorschemeOverlay";
 import { HelpOverlay } from "@/components/ui/HelpOverlay";
 import { HistoryOverlay } from "@/components/ui/HistoryOverlay";
 import { MarksOverlay } from "@/components/ui/MarksOverlay";
+import { RegistersOverlay } from "@/components/ui/RegistersOverlay";
 import { SearchOverlay } from "@/components/ui/SearchOverlay";
 import { TelescopeOverlay } from "@/components/ui/TelescopeOverlay";
 import { WhichKeyOverlay } from "@/components/ui/WhichKeyOverlay";
 import { useBuffers } from "@/context/BufferContext";
 import { useHistory } from "@/context/HistoryContext";
+import { useMacros } from "@/context/MacroContext";
 import { useNavigation } from "@/context/NavigationContext";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -39,6 +41,7 @@ export const Terminal: FC<TerminalProps> = ({
   const { setIsJumplistNavigation } = useHistory();
   const { switchToBuffer } = useBuffers();
   const { setColorscheme } = useTheme();
+  const { isRecording, recordingRegister } = useMacros();
   const {
     mode,
     setMode,
@@ -63,6 +66,8 @@ export const Terminal: FC<TerminalProps> = ({
     showTelescope,
     setShowTelescope,
     telescopeMode,
+    showRegisters,
+    setShowRegisters,
   } = useNavigation();
 
   const handleHistoryNavigate = (path: string) => {
@@ -125,6 +130,8 @@ export const Terminal: FC<TerminalProps> = ({
           mode={mode}
           line={line}
           col={col}
+          isRecording={isRecording}
+          recordingRegister={recordingRegister}
         />
 
         {/* Help overlay */}
@@ -175,6 +182,11 @@ export const Terminal: FC<TerminalProps> = ({
             onSwitchBuffer={switchToBuffer}
             onSetColorscheme={setColorscheme}
           />
+        )}
+
+        {/* Registers overlay */}
+        {showRegisters && (
+          <RegistersOverlay onClose={() => setShowRegisters(false)} />
         )}
       </div>
     </div>

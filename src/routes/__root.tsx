@@ -11,8 +11,9 @@ import { useEffect } from "react";
 import { NotFound } from "@/components/NotFound";
 import { BufferProvider } from "@/context/BufferContext";
 import { HistoryProvider, useHistory } from "@/context/HistoryContext";
+import { MacroProvider, useMacros } from "@/context/MacroContext";
 import { MarksProvider, useMarks } from "@/context/MarksContext";
-import { NavigationProvider } from "@/context/NavigationContext";
+import { NavigationProvider, useNavigation } from "@/context/NavigationContext";
 import { PaneProvider } from "@/context/PaneContext";
 import ThemeProvider from "@/context/ThemeContext";
 import { seo } from "@/lib/seo";
@@ -175,6 +176,116 @@ function HistoryEventsHandler() {
   return null;
 }
 
+/**
+ * Component that handles macro-related custom events from NavigationContext
+ * Must be inside MacroProvider and NavigationProvider
+ */
+function MacroEventsHandler() {
+  const {
+    isRecording,
+    startRecording,
+    stopRecording,
+    recordKey,
+    replayMacro,
+    replayLastMacro,
+    deleteMacro,
+    deleteAllMacros,
+  } = useMacros();
+  const { setPendingOperator, setShowWhichKey } = useNavigation();
+
+  useEffect(() => {
+    // Handle toggle recording (q key)
+    const handleToggleRecording = () => {
+      if (isRecording) {
+        stopRecording();
+        // Clear pending state since we just stopped recording
+        setPendingOperator(null);
+        setShowWhichKey(false);
+      }
+      // If not recording, the pending operator 'q' is already set,
+      // and macro-start-recording will be dispatched when user presses a-z
+    };
+
+    // Handle start recording (q{a-z})
+    const handleStartRecording = (e: CustomEvent<{ key: string }>) => {
+      startRecording(e.detail.key);
+    };
+
+    // Handle replay macro (@{a-z})
+    const handleReplayMacro = (e: CustomEvent<{ key: string }>) => {
+      replayMacro(e.detail.key);
+    };
+
+    // Handle replay last macro (@@)
+    const handleReplayLast = () => {
+      replayLastMacro();
+    };
+
+    // Handle delete macro (:delreg {a-z})
+    const handleDeleteMacro = (e: CustomEvent<{ key: string }>) => {
+      deleteMacro(e.detail.key);
+    };
+
+    // Handle delete all macros (:delreg!)
+    const handleDeleteAll = () => {
+      deleteAllMacros();
+    };
+
+    // Record keystrokes while recording
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isRecording) {
+        recordKey(e);
+      }
+    };
+
+    window.addEventListener("macro-toggle-recording", handleToggleRecording);
+    window.addEventListener(
+      "macro-start-recording",
+      handleStartRecording as EventListener,
+    );
+    window.addEventListener("macro-replay", handleReplayMacro as EventListener);
+    window.addEventListener("macro-replay-last", handleReplayLast);
+    window.addEventListener("macro-delete", handleDeleteMacro as EventListener);
+    window.addEventListener("macro-delete-all", handleDeleteAll);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener(
+        "macro-toggle-recording",
+        handleToggleRecording,
+      );
+      window.removeEventListener(
+        "macro-start-recording",
+        handleStartRecording as EventListener,
+      );
+      window.removeEventListener(
+        "macro-replay",
+        handleReplayMacro as EventListener,
+      );
+      window.removeEventListener("macro-replay-last", handleReplayLast);
+      window.removeEventListener(
+        "macro-delete",
+        handleDeleteMacro as EventListener,
+      );
+      window.removeEventListener("macro-delete-all", handleDeleteAll);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    isRecording,
+    startRecording,
+    stopRecording,
+    recordKey,
+    replayMacro,
+    replayLastMacro,
+    deleteMacro,
+    deleteAllMacros,
+    setPendingOperator,
+    setShowWhichKey,
+  ]);
+
+  return null;
+}
+
 function RootComponent() {
   const { colorscheme } = Route.useRouteContext();
 
@@ -187,15 +298,18 @@ function RootComponent() {
         <ThemeProvider colorscheme={colorscheme}>
           <HistoryProvider>
             <MarksProvider>
-              <NavigationProvider>
-                <BufferProvider>
-                  <PaneProvider>
-                    <MarkEventsHandler />
-                    <HistoryEventsHandler />
-                    <Outlet />
-                  </PaneProvider>
-                </BufferProvider>
-              </NavigationProvider>
+              <MacroProvider>
+                <NavigationProvider>
+                  <BufferProvider>
+                    <PaneProvider>
+                      <MarkEventsHandler />
+                      <HistoryEventsHandler />
+                      <MacroEventsHandler />
+                      <Outlet />
+                    </PaneProvider>
+                  </BufferProvider>
+                </NavigationProvider>
+              </MacroProvider>
             </MarksProvider>
           </HistoryProvider>
         </ThemeProvider>

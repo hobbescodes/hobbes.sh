@@ -90,6 +90,7 @@ interface NavigationContextValue {
 
   // Which-Key overlay
   showWhichKey: boolean;
+  setShowWhichKey: (show: boolean) => void;
 
   // Buffer list overlay
   showBufferList: boolean;
@@ -100,6 +101,10 @@ interface NavigationContextValue {
   setShowTelescope: (show: boolean) => void;
   telescopeMode: TelescopeMode;
   setTelescopeMode: (mode: TelescopeMode) => void;
+
+  // Registers overlay
+  showRegisters: boolean;
+  setShowRegisters: (show: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -187,6 +192,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
   const [showTelescope, setShowTelescope] = useState(false);
   const [telescopeMode, setTelescopeMode] =
     useState<TelescopeMode>("find_files");
+
+  // Registers overlay
+  const [showRegisters, setShowRegisters] = useState(false);
 
   // Which-Key overlay - shows after delay when pending operator is active
   const [showWhichKey, setShowWhichKey] = useState(false);
@@ -422,6 +430,28 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
       } else {
         setCommandError(`E474: Invalid argument: ${arg}`);
       }
+    } else if (cmdLower === "reg" || cmdLower === "registers") {
+      // :reg / :registers opens the registers overlay
+      setMode("NORMAL");
+      setShowRegisters(true);
+    } else if (cmdLower === "delreg!") {
+      // :delreg! deletes all macros
+      window.dispatchEvent(new CustomEvent("macro-delete-all"));
+      setMode("NORMAL");
+    } else if (cmdLower.startsWith("delreg ")) {
+      // :delreg {letter} deletes a specific macro
+      const regKey = cmd
+        .replace(/^delreg\s+/i, "")
+        .trim()
+        .toLowerCase();
+      if (/^[a-z]$/.test(regKey)) {
+        window.dispatchEvent(
+          new CustomEvent("macro-delete", { detail: { key: regKey } }),
+        );
+        setMode("NORMAL");
+      } else {
+        setCommandError(`E474: Invalid argument: ${regKey}`);
+      }
     } else {
       // Try parsing as telescope command
       const teleResult = parseTelescopeCommand(cmd);
@@ -568,6 +598,64 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
           return;
         }
 
+        // Handle "q" pending operator for macro recording
+        if (pendingOperator === "q") {
+          e.preventDefault();
+          // Escape or Backspace cancels the pending operator
+          if (e.key === "Escape" || e.key === "Backspace") {
+            clearPendingState();
+            return;
+          }
+          // Only handle single character keys (a-z)
+          if (/^[a-z]$/.test(e.key)) {
+            window.dispatchEvent(
+              new CustomEvent("macro-start-recording", {
+                detail: { key: e.key },
+              }),
+            );
+            clearPendingState();
+            return;
+          }
+          // Any other single char key cancels
+          if (e.key.length === 1) {
+            clearPendingState();
+            return;
+          }
+          // Ignore other special keys
+          return;
+        }
+
+        // Handle "@" pending operator for macro replay
+        if (pendingOperator === "@") {
+          e.preventDefault();
+          // Escape or Backspace cancels the pending operator
+          if (e.key === "Escape" || e.key === "Backspace") {
+            clearPendingState();
+            return;
+          }
+          // @@ replays last macro
+          if (e.key === "@") {
+            window.dispatchEvent(new CustomEvent("macro-replay-last"));
+            clearPendingState();
+            return;
+          }
+          // @{a-z} replays specific macro
+          if (/^[a-z]$/.test(e.key)) {
+            window.dispatchEvent(
+              new CustomEvent("macro-replay", { detail: { key: e.key } }),
+            );
+            clearPendingState();
+            return;
+          }
+          // Any other single char key cancels
+          if (e.key.length === 1) {
+            clearPendingState();
+            return;
+          }
+          // Ignore other special keys
+          return;
+        }
+
         // Handle Ctrl+D and Ctrl+U for half-page scrolling
         if (e.ctrlKey && (e.key === "d" || e.key === "u")) {
           e.preventDefault();
@@ -638,6 +726,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
           case "m":
           case "'":
           case "b":
+          case "@":
             e.preventDefault();
             setCountBuffer(""); // Clear count when starting pending operator
             setPendingOperator(e.key);
@@ -648,6 +737,18 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
             }, WHICH_KEY_DELAY);
             // No auto-clear timeout - let user take their time with which-key hints
             // User can press Escape to cancel, or any key to complete/cancel the action
+            break;
+          case "q":
+            e.preventDefault();
+            setCountBuffer("");
+            // Dispatch event - MacroContext will decide whether to start or stop recording
+            window.dispatchEvent(new CustomEvent("macro-toggle-recording"));
+            // Also set pending operator to show which-key hints if not recording
+            setPendingOperator("q");
+            whichKeyTimeoutRef.current = setTimeout(() => {
+              setShowWhichKey(true);
+              whichKeyTimeoutRef.current = null;
+            }, WHICH_KEY_DELAY);
             break;
           case ":":
             e.preventDefault();
@@ -814,6 +915,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowWhichKey(false);
     setShowBufferList(false);
     setShowTelescope(false);
+    setShowRegisters(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -843,12 +945,15 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     showHistory,
     setShowHistory,
     showWhichKey,
+    setShowWhichKey,
     showBufferList,
     setShowBufferList,
     showTelescope,
     setShowTelescope,
     telescopeMode,
     setTelescopeMode,
+    showRegisters,
+    setShowRegisters,
   };
 
   return (

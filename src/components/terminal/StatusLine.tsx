@@ -8,6 +8,8 @@ interface StatusLineProps {
   mode: NavigationMode;
   line?: number;
   col?: number;
+  isRecording?: boolean;
+  recordingRegister?: string | null;
 }
 
 const modeStyles: Record<string, { bg: string; text: string }> = {
@@ -25,6 +27,8 @@ export const StatusLine: FC<StatusLineProps> = ({
   mode,
   line = 1,
   col = 1,
+  isRecording = false,
+  recordingRegister = null,
 }) => {
   const modeStyle = modeStyles[mode];
 
@@ -46,6 +50,20 @@ export const StatusLine: FC<StatusLineProps> = ({
       >
         {mode}
       </div>
+
+      {/* Recording indicator */}
+      {isRecording && recordingRegister && (
+        <div
+          className="flex h-full animate-pulse items-center gap-1 px-2 font-bold"
+          style={{
+            backgroundColor: "var(--red)",
+            color: "var(--crust)",
+          }}
+        >
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+          <span>@{recordingRegister}</span>
+        </div>
+      )}
 
       {/* File path */}
       <div className="flex-1 truncate px-3" style={{ color: "var(--text)" }}>

@@ -96,7 +96,7 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Marks Section */}
+            {/* Macros Section */}
             <div>
               <h3
                 className="mb-3 pb-1 font-bold"
@@ -105,13 +105,13 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                   borderBottom: "1px solid var(--surface1)",
                 }}
               >
-                Marks
+                Macros
               </h3>
               <div className="space-y-2">
-                <KeyBinding keys="m{a-z}" description="Set mark" />
-                <KeyBinding keys="'{a-z}" description="Jump to mark" />
-                <KeyBinding keys=":marks" description="List marks" />
-                <KeyBinding keys=":delmarks!" description="Delete all" />
+                <KeyBinding keys="q{a-z}" description="Record macro" />
+                <KeyBinding keys="q" description="Stop recording" />
+                <KeyBinding keys="@{a-z}" description="Replay macro" />
+                <KeyBinding keys="@@" description="Replay last" />
               </div>
             </div>
 
@@ -171,8 +171,10 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
           <div className="mt-1" style={{ color: "var(--overlay0)" }}>
             Tip: Hold <span style={{ color: "var(--green)" }}>g</span>,{" "}
             <span style={{ color: "var(--green)" }}>m</span>,{" "}
-            <span style={{ color: "var(--green)" }}>'</span>, or{" "}
-            <span style={{ color: "var(--green)" }}>b</span> for hints
+            <span style={{ color: "var(--green)" }}>'</span>,{" "}
+            <span style={{ color: "var(--green)" }}>b</span>,{" "}
+            <span style={{ color: "var(--green)" }}>q</span>, or{" "}
+            <span style={{ color: "var(--green)" }}>@</span> for hints
           </div>
         </div>
       </div>
