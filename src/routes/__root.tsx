@@ -38,7 +38,16 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         ...meta,
       ],
-      links: [{ rel: "stylesheet", href: appCss }, ...links],
+      links: [
+        {
+          rel: "preload",
+          href: "/wallpaper.webp",
+          as: "image",
+          type: "image/webp",
+        },
+        { rel: "stylesheet", href: appCss },
+        ...links,
+      ],
     };
   },
 

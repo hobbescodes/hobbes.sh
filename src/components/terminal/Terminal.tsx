@@ -62,7 +62,7 @@ export const Terminal: FC<TerminalProps> = ({
     <div
       className="relative flex min-h-[100dvh] min-h-screen w-screen items-center justify-center p-1 sm:p-2 md:p-4 lg:p-8"
       style={{
-        backgroundImage: "url(/wallpaper.png)",
+        backgroundImage: "url(/wallpaper.webp)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
