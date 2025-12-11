@@ -1,14 +1,14 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  ProjectCategoryPage,
-  prefetchCategoryRepos,
-} from "@/components/projects/ProjectCategoryPage";
+import { ProjectCategoryPage } from "@/components/projects/ProjectCategoryPage";
+import { getOwnedReposQueryOptions } from "@/generated/operations";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/owned")({
   component: OwnedProjectsPage,
-  loader: ({ context }) => prefetchCategoryRepos(context.queryClient, "owned"),
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(getOwnedReposQueryOptions()),
   head: () => {
     const { meta, links } = seo({
       title: "Owned Projects",
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/projects/owned")({
 
 function OwnedProjectsPage() {
   const { from } = Route.useSearch();
+  const { data } = useSuspenseQuery(getOwnedReposQueryOptions());
 
   // Extract slug from "from" path (e.g., "/projects/hobbes.sh" -> "hobbes.sh")
   const fromSlug = from?.startsWith("/projects/")
@@ -34,6 +35,7 @@ function OwnedProjectsPage() {
     <ProjectCategoryPage
       category="owned"
       categoryDisplay="owned"
+      data={data}
       fromSlug={fromSlug}
     />
   );

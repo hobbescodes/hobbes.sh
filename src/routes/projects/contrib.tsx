@@ -1,15 +1,14 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  ProjectCategoryPage,
-  prefetchCategoryRepos,
-} from "@/components/projects/ProjectCategoryPage";
+import { ProjectCategoryPage } from "@/components/projects/ProjectCategoryPage";
+import { getContribReposQueryOptions } from "@/generated/operations";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/contrib")({
   component: ContribProjectsPage,
   loader: ({ context }) =>
-    prefetchCategoryRepos(context.queryClient, "contrib"),
+    context.queryClient.ensureQueryData(getContribReposQueryOptions()),
   head: () => {
     const { meta, links } = seo({
       title: "Contributions",
@@ -25,6 +24,7 @@ export const Route = createFileRoute("/projects/contrib")({
 
 function ContribProjectsPage() {
   const { from } = Route.useSearch();
+  const { data } = useSuspenseQuery(getContribReposQueryOptions());
 
   // Extract slug from "from" path (e.g., "/projects/prise" -> "prise")
   const fromSlug = from?.startsWith("/projects/")
@@ -35,6 +35,7 @@ function ContribProjectsPage() {
     <ProjectCategoryPage
       category="contrib"
       categoryDisplay="contrib"
+      data={data}
       fromSlug={fromSlug}
     />
   );

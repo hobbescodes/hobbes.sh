@@ -19,14 +19,14 @@ export const Route = createFileRoute("/blog/$slug")({
     return { post };
   },
   head: ({ loaderData }) => {
-    const { post } = loaderData;
     const { meta, links } = seo({
-      title: post.title,
-      description: post.description,
-      url: `/blog/${post.slug}`,
+      // biome-ignore lint: meh
+      title: loaderData?.post.title!,
+      description: loaderData?.post.description,
+      url: `/blog/${loaderData?.post.slug}`,
       type: "article",
-      publishedTime: post.date,
-      tags: post.tags,
+      publishedTime: loaderData?.post.date,
+      tags: loaderData?.post.tags,
     });
     return { meta, links };
   },
@@ -58,13 +58,6 @@ function BlogPostPage() {
       navigate({ to: "/blog", search: { from: `/blog/${post.slug}` } }),
   });
 
-  const handleLineDoubleClick = (lineNumber: number) => {
-    const lineProps = getLineProps(lineNumber - 1);
-    if (lineProps.url) {
-      window.open(lineProps.url, "_blank", "noopener,noreferrer");
-    }
-  };
-
   return (
     <Terminal
       title={`👻 ~/hobbescodes/blog/${post.slug}.md`}
@@ -78,7 +71,6 @@ function BlogPostPage() {
         currentLine={currentLine}
         contentLineCount={allContent.length}
         onLineClick={setCurrentLine}
-        onLineDoubleClick={handleLineDoubleClick}
       >
         <SyntaxHighlight
           content={allContent}

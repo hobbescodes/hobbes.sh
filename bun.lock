@@ -30,7 +30,7 @@
         "@vitejs/plugin-react": "^5.0.4",
         "jsdom": "^27.0.0",
         "knip": "^5.72.0",
-        "tangen": "^0.4.0",
+        "tangen": "^0.4.1",
         "tw-animate-css": "^1.4.0",
         "typescript": "^5.7.2",
         "vite": "^7.1.7",
@@ -855,7 +855,7 @@
 
     "tailwindcss": ["tailwindcss@4.1.17", "", {}, "sha512-j9Ee2YjuQqYT9bbRTfTZht9W/ytp5H+jJpZKiYdP/bpnXARAuELt9ofP0lPnmHjbga7SNQIxdTAXCmtKVYjN+Q=="],
 
-    "tangen": ["tangen@0.4.0", "", { "dependencies": { "c12": "^2.0.1", "citty": "^0.1.6", "consola": "^3.4.0", "fast-glob": "^3.3.3", "graphql": "^16.10.0", "zod": "^3.24.4" }, "peerDependencies": { "@tanstack/react-query": ">=5.0.0", "graphql-request": ">=6.0.0" }, "optionalPeers": ["@tanstack/react-query", "graphql-request"], "bin": { "tangen": "dist/cli.js" } }, "sha512-L3LvjgdWqIKo2h4MFloIE9Cu26W8CCHdegdK1gyQdYKwsEMt9Y5c8jYkRkHN37k2rDtIA0cK//c55AXupkOgQA=="],
+    "tangen": ["tangen@0.4.1", "", { "dependencies": { "c12": "^2.0.1", "citty": "^0.1.6", "consola": "^3.4.0", "fast-glob": "^3.3.3", "graphql": "^16.10.0", "zod": "^3.24.4" }, "peerDependencies": { "@tanstack/react-query": ">=5.0.0", "graphql-request": ">=6.0.0" }, "optionalPeers": ["@tanstack/react-query", "graphql-request"], "bin": { "tangen": "dist/cli.js" } }, "sha512-NFr0diaFgP7WnKP6Q7Gh2L4H1xYV4DMBkqTuCtf4EhRXoHkz/juCwFr6xOYo49ZfaxBdtBsYED3cNcogCtKchQ=="],
 
     "tapable": ["tapable@2.3.0", "", {}, "sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg=="],
 

@@ -4535,13 +4535,25 @@ export type RepositoryFieldsFragment = {
 }
 
 // Operation Types
-export type GetRepositoryQueryVariables = {
-  owner: string
-  name: string
+export type GetOwnedReposQueryVariables = Record<string, never>
+
+export type GetOwnedReposQuery = {
+  hobbes_sh: RepositoryFieldsFragment | null
+  tangen: RepositoryFieldsFragment | null
 }
 
-export type GetRepositoryQuery = {
-  repository: RepositoryFieldsFragment | null
+export type GetOmnidotdevReposQueryVariables = Record<string, never>
+
+export type GetOmnidotdevReposQuery = {
+  rdk: RepositoryFieldsFragment | null
+  backfeed_app: RepositoryFieldsFragment | null
+  garden: RepositoryFieldsFragment | null
+}
+
+export type GetContribReposQueryVariables = Record<string, never>
+
+export type GetContribReposQuery = {
+  prise: RepositoryFieldsFragment | null
 }
 
 export type GetRepositoryWithReadmeQueryVariables = {

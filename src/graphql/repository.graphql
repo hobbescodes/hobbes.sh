@@ -20,9 +20,32 @@ fragment RepositoryFields on Repository {
   }
 }
 
-# Single repository query (for category listings)
-query GetRepository($owner: String!, $name: String!) {
-  repository(owner: $owner, name: $name) {
+# Batch query for owned repos (hobbescodes)
+query GetOwnedRepos {
+  hobbes_sh: repository(owner: "hobbescodes", name: "hobbes.sh") {
+    ...RepositoryFields
+  }
+  tangen: repository(owner: "hobbescodes", name: "tangen") {
+    ...RepositoryFields
+  }
+}
+
+# Batch query for omnidotdev organization repos
+query GetOmnidotdevRepos {
+  rdk: repository(owner: "omnidotdev", name: "rdk") {
+    ...RepositoryFields
+  }
+  backfeed_app: repository(owner: "omnidotdev", name: "backfeed-app") {
+    ...RepositoryFields
+  }
+  garden: repository(owner: "omnidotdev", name: "garden") {
+    ...RepositoryFields
+  }
+}
+
+# Batch query for contribution repos
+query GetContribRepos {
+  prise: repository(owner: "rockorager", name: "prise") {
     ...RepositoryFields
   }
 }

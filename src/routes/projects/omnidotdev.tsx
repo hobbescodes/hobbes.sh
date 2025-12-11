@@ -1,15 +1,14 @@
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import {
-  ProjectCategoryPage,
-  prefetchCategoryRepos,
-} from "@/components/projects/ProjectCategoryPage";
+import { ProjectCategoryPage } from "@/components/projects/ProjectCategoryPage";
+import { getOmnidotdevReposQueryOptions } from "@/generated/operations";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/omnidotdev")({
   component: OmnidotdevProjectsPage,
   loader: ({ context }) =>
-    prefetchCategoryRepos(context.queryClient, "omnidotdev"),
+    context.queryClient.ensureQueryData(getOmnidotdevReposQueryOptions()),
   head: () => {
     const { meta, links } = seo({
       title: "Omnidotdev Projects",
@@ -25,6 +24,7 @@ export const Route = createFileRoute("/projects/omnidotdev")({
 
 function OmnidotdevProjectsPage() {
   const { from } = Route.useSearch();
+  const { data } = useSuspenseQuery(getOmnidotdevReposQueryOptions());
 
   // Extract slug from "from" path (e.g., "/projects/rdk" -> "rdk")
   const fromSlug = from?.startsWith("/projects/")
@@ -35,6 +35,7 @@ function OmnidotdevProjectsPage() {
     <ProjectCategoryPage
       category="omnidotdev"
       categoryDisplay="omnidotdev"
+      data={data}
       fromSlug={fromSlug}
     />
   );

@@ -98,3 +98,21 @@ export function getCategoryForRepo(slug: string): ProjectCategory | undefined {
   }
   return undefined;
 }
+
+/**
+ * Convert a repo name to a valid GraphQL alias.
+ * Replaces dots and dashes with underscores.
+ */
+export function repoNameToAlias(name: string): string {
+  return name.replace(/[.-]/g, "_");
+}
+
+/**
+ * Get the ordered list of GraphQL aliases for a category.
+ * Used to extract repos from aliased query responses in the correct order.
+ */
+export function getCategoryAliases(category: ProjectCategory): string[] {
+  return getReposByCategory(category).map((config) =>
+    repoNameToAlias(config.repo),
+  );
+}
