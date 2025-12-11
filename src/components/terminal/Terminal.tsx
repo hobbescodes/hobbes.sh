@@ -8,6 +8,7 @@ import { HelpOverlay } from "@/components/ui/HelpOverlay";
 import { HistoryOverlay } from "@/components/ui/HistoryOverlay";
 import { MarksOverlay } from "@/components/ui/MarksOverlay";
 import { SearchOverlay } from "@/components/ui/SearchOverlay";
+import { WhichKeyOverlay } from "@/components/ui/WhichKeyOverlay";
 import { useHistory } from "@/context/HistoryContext";
 import { useNavigation } from "@/context/NavigationContext";
 
@@ -50,6 +51,7 @@ export const Terminal: FC<TerminalProps> = ({
     setShowMarks,
     showHistory,
     setShowHistory,
+    showWhichKey,
   } = useNavigation();
 
   const handleHistoryNavigate = (path: string) => {
@@ -136,6 +138,11 @@ export const Terminal: FC<TerminalProps> = ({
             onClose={() => setShowHistory(false)}
             onNavigate={handleHistoryNavigate}
           />
+        )}
+
+        {/* Which-Key overlay - shows hints for pending operators */}
+        {showWhichKey && pendingOperator && (
+          <WhichKeyOverlay pendingOperator={pendingOperator} />
         )}
       </div>
     </div>

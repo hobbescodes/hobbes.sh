@@ -164,8 +164,15 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
             borderTop: "1px solid var(--surface1)",
           }}
         >
-          Press <span style={{ color: "var(--blue)" }}>?</span> or{" "}
-          <span style={{ color: "var(--blue)" }}>Esc</span> to close
+          <div>
+            Press <span style={{ color: "var(--blue)" }}>?</span> or{" "}
+            <span style={{ color: "var(--blue)" }}>Esc</span> to close
+          </div>
+          <div className="mt-1" style={{ color: "var(--overlay0)" }}>
+            Tip: Hold <span style={{ color: "var(--green)" }}>g</span>,{" "}
+            <span style={{ color: "var(--green)" }}>m</span>, or{" "}
+            <span style={{ color: "var(--green)" }}>'</span> for hints
+          </div>
         </div>
       </div>
     </div>

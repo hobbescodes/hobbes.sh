@@ -85,6 +85,9 @@ interface NavigationContextValue {
   // History overlay
   showHistory: boolean;
   setShowHistory: (show: boolean) => void;
+
+  // Which-Key overlay
+  showWhichKey: boolean;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -164,6 +167,11 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
   // History overlay
   const [showHistory, setShowHistory] = useState(false);
+
+  // Which-Key overlay - shows after delay when pending operator is active
+  const [showWhichKey, setShowWhichKey] = useState(false);
+  const whichKeyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const WHICH_KEY_DELAY = 200; // ms - snappy delay before showing hints
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
   const [countBuffer, setCountBuffer] = useState("");
@@ -356,57 +364,85 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
       // Handle based on current mode
       if (mode === "NORMAL") {
-        // Handle pending operator (e.g., 'g' waiting for 'x', 'm' waiting for mark letter)
-        if (pendingOperator === "g") {
-          e.preventDefault();
-          // Clear the timeout since we got a follow-up key
+        // Helper to clear pending operator state and which-key overlay
+        const clearPendingState = () => {
           if (pendingOperatorTimeoutRef.current) {
             clearTimeout(pendingOperatorTimeoutRef.current);
             pendingOperatorTimeoutRef.current = null;
           }
-
-          if (e.key === "x") {
-            // Dispatch gx event for pages to handle
-            window.dispatchEvent(new CustomEvent("gx-execute"));
+          if (whichKeyTimeoutRef.current) {
+            clearTimeout(whichKeyTimeoutRef.current);
+            whichKeyTimeoutRef.current = null;
           }
-          // Clear pending operator regardless of which key was pressed
           setPendingOperator(null);
+          setShowWhichKey(false);
+        };
+
+        // Handle pending operator (e.g., 'g' waiting for 'x', 'm' waiting for mark letter)
+        if (pendingOperator === "g") {
+          e.preventDefault();
+          // Escape or Backspace cancels the pending operator
+          if (e.key === "Escape" || e.key === "Backspace") {
+            clearPendingState();
+            return;
+          }
+          // Only handle single character keys for completion
+          if (e.key.length === 1) {
+            if (e.key === "x") {
+              // Dispatch gx event for pages to handle
+              window.dispatchEvent(new CustomEvent("gx-execute"));
+            }
+            // Clear pending operator for valid single-char keys
+            clearPendingState();
+            return;
+          }
+          // Ignore other special keys (but don't clear pending state)
           return;
         }
 
         // Handle 'm' pending operator for setting marks
         if (pendingOperator === "m") {
           e.preventDefault();
-          if (pendingOperatorTimeoutRef.current) {
-            clearTimeout(pendingOperatorTimeoutRef.current);
-            pendingOperatorTimeoutRef.current = null;
+          // Escape or Backspace cancels the pending operator
+          if (e.key === "Escape" || e.key === "Backspace") {
+            clearPendingState();
+            return;
           }
-
-          // Check if it's a valid mark key (a-z)
-          if (/^[a-z]$/.test(e.key)) {
-            window.dispatchEvent(
-              new CustomEvent("mark-set", { detail: { key: e.key } }),
-            );
+          // Only handle single character keys
+          if (e.key.length === 1) {
+            // Check if it's a valid mark key (a-z)
+            if (/^[a-z]$/.test(e.key)) {
+              window.dispatchEvent(
+                new CustomEvent("mark-set", { detail: { key: e.key } }),
+              );
+            }
+            clearPendingState();
+            return;
           }
-          setPendingOperator(null);
+          // Ignore other special keys
           return;
         }
 
         // Handle "'" pending operator for jumping to marks
         if (pendingOperator === "'") {
           e.preventDefault();
-          if (pendingOperatorTimeoutRef.current) {
-            clearTimeout(pendingOperatorTimeoutRef.current);
-            pendingOperatorTimeoutRef.current = null;
+          // Escape or Backspace cancels the pending operator
+          if (e.key === "Escape" || e.key === "Backspace") {
+            clearPendingState();
+            return;
           }
-
-          // Check if it's a valid mark key (a-z)
-          if (/^[a-z]$/.test(e.key)) {
-            window.dispatchEvent(
-              new CustomEvent("mark-jump", { detail: { key: e.key } }),
-            );
+          // Only handle single character keys
+          if (e.key.length === 1) {
+            // Check if it's a valid mark key (a-z)
+            if (/^[a-z]$/.test(e.key)) {
+              window.dispatchEvent(
+                new CustomEvent("mark-jump", { detail: { key: e.key } }),
+              );
+            }
+            clearPendingState();
+            return;
           }
-          setPendingOperator(null);
+          // Ignore other special keys
           return;
         }
 
@@ -474,11 +510,13 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
             e.preventDefault();
             setCountBuffer(""); // Clear count when starting pending operator
             setPendingOperator(e.key);
-            // Set timeout to clear pending operator after 800ms
-            pendingOperatorTimeoutRef.current = setTimeout(() => {
-              setPendingOperator(null);
-              pendingOperatorTimeoutRef.current = null;
-            }, 800);
+            // Set timeout to show which-key hints after delay
+            whichKeyTimeoutRef.current = setTimeout(() => {
+              setShowWhichKey(true);
+              whichKeyTimeoutRef.current = null;
+            }, WHICH_KEY_DELAY);
+            // No auto-clear timeout - let user take their time with which-key hints
+            // User can press Escape to cancel, or any key to complete/cancel the action
             break;
           case ":":
             e.preventDefault();
@@ -499,9 +537,14 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
             e.preventDefault();
             setCountBuffer(""); // Clear count on escape
             setPendingOperator(null); // Clear pending operator on escape
+            setShowWhichKey(false); // Clear which-key overlay
             if (pendingOperatorTimeoutRef.current) {
               clearTimeout(pendingOperatorTimeoutRef.current);
               pendingOperatorTimeoutRef.current = null;
+            }
+            if (whichKeyTimeoutRef.current) {
+              clearTimeout(whichKeyTimeoutRef.current);
+              whichKeyTimeoutRef.current = null;
             }
             setShowHelp(false);
             break;
@@ -597,10 +640,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     window.addEventListener("keydown", handleKeyDown);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      // Clean up pending operator timeout on unmount
-      if (pendingOperatorTimeoutRef.current) {
-        clearTimeout(pendingOperatorTimeoutRef.current);
-      }
+      // NOTE: Don't clean up timeouts here - this cleanup runs on every
+      // dependency change, which would cancel our pending operator timeouts.
+      // Timeouts are cleaned up in a separate unmount-only effect below.
     };
   }, [
     mode,
@@ -614,6 +656,18 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     pendingOperator,
   ]);
 
+  // Separate effect for cleaning up timeouts on unmount only
+  useEffect(() => {
+    return () => {
+      if (pendingOperatorTimeoutRef.current) {
+        clearTimeout(pendingOperatorTimeoutRef.current);
+      }
+      if (whichKeyTimeoutRef.current) {
+        clearTimeout(whichKeyTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Reset mode when route changes (except for game routes which manage their own mode)
   // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally run on route change only
   useEffect(() => {
@@ -626,6 +680,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowColorscheme(false);
     setShowMarks(false);
     setShowHistory(false);
+    setShowWhichKey(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -654,6 +709,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowMarks,
     showHistory,
     setShowHistory,
+    showWhichKey,
   };
 
   return (
