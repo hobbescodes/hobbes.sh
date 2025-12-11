@@ -1,10 +1,14 @@
+import { useNavigate } from "@tanstack/react-router";
+
 import { CommandLine } from "@/components/editor/CommandLine";
 import { StatusLine } from "@/components/terminal/StatusLine";
 import { TitleBar } from "@/components/terminal/TitleBar";
 import { ColorschemeOverlay } from "@/components/ui/ColorschemeOverlay";
 import { HelpOverlay } from "@/components/ui/HelpOverlay";
+import { HistoryOverlay } from "@/components/ui/HistoryOverlay";
 import { MarksOverlay } from "@/components/ui/MarksOverlay";
 import { SearchOverlay } from "@/components/ui/SearchOverlay";
+import { useHistory } from "@/context/HistoryContext";
 import { useNavigation } from "@/context/NavigationContext";
 
 import type { FC, ReactNode } from "react";
@@ -26,6 +30,8 @@ export const Terminal: FC<TerminalProps> = ({
   line = 1,
   col = 1,
 }) => {
+  const navigate = useNavigate();
+  const { setIsJumplistNavigation } = useHistory();
   const {
     mode,
     setMode,
@@ -42,7 +48,14 @@ export const Terminal: FC<TerminalProps> = ({
     setShowColorscheme,
     showMarks,
     setShowMarks,
+    showHistory,
+    setShowHistory,
   } = useNavigation();
+
+  const handleHistoryNavigate = (path: string) => {
+    setIsJumplistNavigation(true);
+    navigate({ to: path as "/", search: {} });
+  };
 
   return (
     // Outer container - centers the terminal with wallpaper background
@@ -116,6 +129,14 @@ export const Terminal: FC<TerminalProps> = ({
 
         {/* Marks overlay */}
         {showMarks && <MarksOverlay onClose={() => setShowMarks(false)} />}
+
+        {/* History overlay */}
+        {showHistory && (
+          <HistoryOverlay
+            onClose={() => setShowHistory(false)}
+            onNavigate={handleHistoryNavigate}
+          />
+        )}
       </div>
     </div>
   );

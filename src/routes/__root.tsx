@@ -9,6 +9,7 @@ import {
 import { useEffect } from "react";
 
 import { NotFound } from "@/components/NotFound";
+import { HistoryProvider, useHistory } from "@/context/HistoryContext";
 import { MarksProvider, useMarks } from "@/context/MarksContext";
 import { NavigationProvider } from "@/context/NavigationContext";
 import { PaneProvider } from "@/context/PaneContext";
@@ -125,6 +126,45 @@ function getDisplayNameFromPath(pathname: string): string {
   return `${lastPart}.md`;
 }
 
+/**
+ * Component that handles history-related custom events from NavigationContext
+ * Must be inside HistoryProvider
+ */
+function HistoryEventsHandler() {
+  const { jumpBack, jumpForward, setIsJumplistNavigation } = useHistory();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Handle Ctrl+o (jump back)
+    const handleJumpBack = () => {
+      const targetPath = jumpBack();
+      if (targetPath) {
+        setIsJumplistNavigation(true);
+        navigate({ to: targetPath as "/", search: {} });
+      }
+    };
+
+    // Handle Ctrl+i (jump forward)
+    const handleJumpForward = () => {
+      const targetPath = jumpForward();
+      if (targetPath) {
+        setIsJumplistNavigation(true);
+        navigate({ to: targetPath as "/", search: {} });
+      }
+    };
+
+    window.addEventListener("history-jump-back", handleJumpBack);
+    window.addEventListener("history-jump-forward", handleJumpForward);
+
+    return () => {
+      window.removeEventListener("history-jump-back", handleJumpBack);
+      window.removeEventListener("history-jump-forward", handleJumpForward);
+    };
+  }, [jumpBack, jumpForward, setIsJumplistNavigation, navigate]);
+
+  return null;
+}
+
 function RootComponent() {
   const { colorscheme } = Route.useRouteContext();
 
@@ -135,14 +175,17 @@ function RootComponent() {
       </head>
       <body>
         <ThemeProvider colorscheme={colorscheme}>
-          <MarksProvider>
-            <NavigationProvider>
-              <PaneProvider>
-                <MarkEventsHandler />
-                <Outlet />
-              </PaneProvider>
-            </NavigationProvider>
-          </MarksProvider>
+          <HistoryProvider>
+            <MarksProvider>
+              <NavigationProvider>
+                <PaneProvider>
+                  <MarkEventsHandler />
+                  <HistoryEventsHandler />
+                  <Outlet />
+                </PaneProvider>
+              </NavigationProvider>
+            </MarksProvider>
+          </HistoryProvider>
         </ThemeProvider>
         <Scripts />
       </body>

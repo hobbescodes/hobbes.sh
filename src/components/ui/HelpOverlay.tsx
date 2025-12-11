@@ -58,6 +58,25 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               </div>
             </div>
 
+            {/* History Section */}
+            <div>
+              <h3
+                className="mb-3 pb-1 font-bold"
+                style={{
+                  color: "var(--peach)",
+                  borderBottom: "1px solid var(--surface1)",
+                }}
+              >
+                History
+              </h3>
+              <div className="space-y-2">
+                <KeyBinding keys="Ctrl+o" description="Jump back" />
+                <KeyBinding keys="Ctrl+i" description="Jump forward" />
+                <KeyBinding keys=":recent" description="Recent files" />
+                <KeyBinding keys=":history" description="Recent files" />
+              </div>
+            </div>
+
             {/* Modes Section */}
             <div>
               <h3
@@ -77,6 +96,25 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               </div>
             </div>
 
+            {/* Marks Section */}
+            <div>
+              <h3
+                className="mb-3 pb-1 font-bold"
+                style={{
+                  color: "var(--peach)",
+                  borderBottom: "1px solid var(--surface1)",
+                }}
+              >
+                Marks
+              </h3>
+              <div className="space-y-2">
+                <KeyBinding keys="m{a-z}" description="Set mark" />
+                <KeyBinding keys="'{a-z}" description="Jump to mark" />
+                <KeyBinding keys=":marks" description="List marks" />
+                <KeyBinding keys=":delmarks!" description="Delete all" />
+              </div>
+            </div>
+
             {/* Commands Section */}
             <div>
               <h3
@@ -93,27 +131,6 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                 <KeyBinding keys=":e <path>" description="Open file" />
                 <KeyBinding keys=":help" description="Show help" />
                 <KeyBinding keys=":theme" description="Theme picker" />
-                <KeyBinding keys=":marks" description="Show marks" />
-              </div>
-            </div>
-
-            {/* Marks Section */}
-            <div>
-              <h3
-                className="mb-3 pb-1 font-bold"
-                style={{
-                  color: "var(--peach)",
-                  borderBottom: "1px solid var(--surface1)",
-                }}
-              >
-                Marks
-              </h3>
-              <div className="space-y-2">
-                <KeyBinding keys="m{a-z}" description="Set mark" />
-                <KeyBinding keys="'{a-z}" description="Jump to mark" />
-                <KeyBinding keys=":marks" description="List marks" />
-                <KeyBinding keys=":delmarks a" description="Delete mark" />
-                <KeyBinding keys=":delmarks!" description="Delete all" />
               </div>
             </div>
 

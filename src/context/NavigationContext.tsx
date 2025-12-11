@@ -81,6 +81,10 @@ interface NavigationContextValue {
   // Marks overlay
   showMarks: boolean;
   setShowMarks: (show: boolean) => void;
+
+  // History overlay
+  showHistory: boolean;
+  setShowHistory: (show: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -157,6 +161,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
   // Marks overlay
   const [showMarks, setShowMarks] = useState(false);
+
+  // History overlay
+  const [showHistory, setShowHistory] = useState(false);
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
   const [countBuffer, setCountBuffer] = useState("");
@@ -320,6 +327,14 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
       } else {
         setCommandError(`E474: Invalid argument: ${markKey}`);
       }
+    } else if (
+      cmdLower === "recent" ||
+      cmdLower === "history" ||
+      cmdLower === "jumps"
+    ) {
+      // :recent / :history / :jumps opens the history overlay
+      setMode("NORMAL");
+      setShowHistory(true);
     } else {
       setCommandError(`Unknown command: ${cmd}`);
     }
@@ -420,6 +435,21 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
               }),
             );
           }
+          return;
+        }
+
+        // Handle Ctrl+O and Ctrl+I for jumplist navigation
+        if (e.ctrlKey && e.key === "o") {
+          e.preventDefault();
+          setCountBuffer("");
+          window.dispatchEvent(new CustomEvent("history-jump-back"));
+          return;
+        }
+
+        if (e.ctrlKey && e.key === "i") {
+          e.preventDefault();
+          setCountBuffer("");
+          window.dispatchEvent(new CustomEvent("history-jump-forward"));
           return;
         }
 
@@ -592,6 +622,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowHelp(false);
     setShowColorscheme(false);
     setShowMarks(false);
+    setShowHistory(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -618,6 +649,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowColorscheme,
     showMarks,
     setShowMarks,
+    showHistory,
+    setShowHistory,
   };
 
   return (
