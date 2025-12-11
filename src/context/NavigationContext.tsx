@@ -77,6 +77,10 @@ interface NavigationContextValue {
   // Colorscheme overlay
   showColorscheme: boolean;
   setShowColorscheme: (show: boolean) => void;
+
+  // Marks overlay
+  showMarks: boolean;
+  setShowMarks: (show: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -150,6 +154,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
   // Colorscheme overlay
   const [showColorscheme, setShowColorscheme] = useState(false);
+
+  // Marks overlay
+  const [showMarks, setShowMarks] = useState(false);
 
   // Count buffer for vim-style count prefix (e.g., "5j" to move 5 lines)
   const [countBuffer, setCountBuffer] = useState("");
@@ -291,6 +298,28 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     } else if (cmdLower === "snake") {
       navigate({ to: "/game/snake", search: {} });
       setMode("NORMAL");
+    } else if (cmdLower === "marks") {
+      // :marks opens the marks overlay
+      setMode("NORMAL");
+      setShowMarks(true);
+    } else if (cmdLower === "delmarks!") {
+      // :delmarks! deletes all marks
+      window.dispatchEvent(new CustomEvent("marks-delete-all"));
+      setMode("NORMAL");
+    } else if (cmdLower.startsWith("delmarks ")) {
+      // :delmarks {letter} deletes a specific mark
+      const markKey = cmd
+        .replace(/^delmarks\s+/i, "")
+        .trim()
+        .toLowerCase();
+      if (/^[a-z]$/.test(markKey)) {
+        window.dispatchEvent(
+          new CustomEvent("mark-delete", { detail: { key: markKey } }),
+        );
+        setMode("NORMAL");
+      } else {
+        setCommandError(`E474: Invalid argument: ${markKey}`);
+      }
     } else {
       setCommandError(`Unknown command: ${cmd}`);
     }
@@ -309,7 +338,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
       // Handle based on current mode
       if (mode === "NORMAL") {
-        // Handle pending operator (e.g., 'g' waiting for 'x')
+        // Handle pending operator (e.g., 'g' waiting for 'x', 'm' waiting for mark letter)
         if (pendingOperator === "g") {
           e.preventDefault();
           // Clear the timeout since we got a follow-up key
@@ -323,6 +352,42 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
             window.dispatchEvent(new CustomEvent("gx-execute"));
           }
           // Clear pending operator regardless of which key was pressed
+          setPendingOperator(null);
+          return;
+        }
+
+        // Handle 'm' pending operator for setting marks
+        if (pendingOperator === "m") {
+          e.preventDefault();
+          if (pendingOperatorTimeoutRef.current) {
+            clearTimeout(pendingOperatorTimeoutRef.current);
+            pendingOperatorTimeoutRef.current = null;
+          }
+
+          // Check if it's a valid mark key (a-z)
+          if (/^[a-z]$/.test(e.key)) {
+            window.dispatchEvent(
+              new CustomEvent("mark-set", { detail: { key: e.key } }),
+            );
+          }
+          setPendingOperator(null);
+          return;
+        }
+
+        // Handle "'" pending operator for jumping to marks
+        if (pendingOperator === "'") {
+          e.preventDefault();
+          if (pendingOperatorTimeoutRef.current) {
+            clearTimeout(pendingOperatorTimeoutRef.current);
+            pendingOperatorTimeoutRef.current = null;
+          }
+
+          // Check if it's a valid mark key (a-z)
+          if (/^[a-z]$/.test(e.key)) {
+            window.dispatchEvent(
+              new CustomEvent("mark-jump", { detail: { key: e.key } }),
+            );
+          }
           setPendingOperator(null);
           return;
         }
@@ -371,9 +436,11 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
         switch (e.key) {
           case "g":
+          case "m":
+          case "'":
             e.preventDefault();
             setCountBuffer(""); // Clear count when starting pending operator
-            setPendingOperator("g");
+            setPendingOperator(e.key);
             // Set timeout to clear pending operator after 800ms
             pendingOperatorTimeoutRef.current = setTimeout(() => {
               setPendingOperator(null);
@@ -524,6 +591,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setMode("NORMAL");
     setShowHelp(false);
     setShowColorscheme(false);
+    setShowMarks(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -548,6 +616,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowHelp,
     showColorscheme,
     setShowColorscheme,
+    showMarks,
+    setShowMarks,
   };
 
   return (

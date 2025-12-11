@@ -3,6 +3,7 @@ import { StatusLine } from "@/components/terminal/StatusLine";
 import { TitleBar } from "@/components/terminal/TitleBar";
 import { ColorschemeOverlay } from "@/components/ui/ColorschemeOverlay";
 import { HelpOverlay } from "@/components/ui/HelpOverlay";
+import { MarksOverlay } from "@/components/ui/MarksOverlay";
 import { SearchOverlay } from "@/components/ui/SearchOverlay";
 import { useNavigation } from "@/context/NavigationContext";
 
@@ -39,6 +40,8 @@ export const Terminal: FC<TerminalProps> = ({
     setShowHelp,
     showColorscheme,
     setShowColorscheme,
+    showMarks,
+    setShowMarks,
   } = useNavigation();
 
   return (
@@ -110,6 +113,9 @@ export const Terminal: FC<TerminalProps> = ({
         {showColorscheme && (
           <ColorschemeOverlay onClose={() => setShowColorscheme(false)} />
         )}
+
+        {/* Marks overlay */}
+        {showMarks && <MarksOverlay onClose={() => setShowMarks(false)} />}
       </div>
     </div>
   );
