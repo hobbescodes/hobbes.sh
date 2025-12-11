@@ -10,9 +10,11 @@ import {
 } from "react";
 
 import { getAllRoutes, searchRoutes } from "@/lib/routes";
+import { parseTelescopeCommand } from "@/lib/telescope";
 
 import type { FC, ReactNode } from "react";
 import type { SearchableRoute } from "@/lib/routes";
+import type { TelescopeMode } from "@/lib/telescope";
 import type { Colorscheme } from "@/types";
 
 // Valid colorscheme names and aliases
@@ -92,6 +94,12 @@ interface NavigationContextValue {
   // Buffer list overlay
   showBufferList: boolean;
   setShowBufferList: (show: boolean) => void;
+
+  // Telescope overlay
+  showTelescope: boolean;
+  setShowTelescope: (show: boolean) => void;
+  telescopeMode: TelescopeMode;
+  setTelescopeMode: (mode: TelescopeMode) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -174,6 +182,11 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
   // Buffer list overlay
   const [showBufferList, setShowBufferList] = useState(false);
+
+  // Telescope overlay
+  const [showTelescope, setShowTelescope] = useState(false);
+  const [telescopeMode, setTelescopeMode] =
+    useState<TelescopeMode>("find_files");
 
   // Which-Key overlay - shows after delay when pending operator is active
   const [showWhichKey, setShowWhichKey] = useState(false);
@@ -410,6 +423,19 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
         setCommandError(`E474: Invalid argument: ${arg}`);
       }
     } else {
+      // Try parsing as telescope command
+      const teleResult = parseTelescopeCommand(cmd);
+      if (teleResult) {
+        if ("error" in teleResult) {
+          setCommandError(teleResult.error);
+        } else {
+          setTelescopeMode(teleResult.mode);
+          setShowTelescope(true);
+          setMode("NORMAL");
+        }
+        return;
+      }
+
       setCommandError(`Unknown command: ${cmd}`);
     }
   }, [commandBuffer, navigate, setMode]);
@@ -787,6 +813,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowHistory(false);
     setShowWhichKey(false);
     setShowBufferList(false);
+    setShowTelescope(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -818,6 +845,10 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     showWhichKey,
     showBufferList,
     setShowBufferList,
+    showTelescope,
+    setShowTelescope,
+    telescopeMode,
+    setTelescopeMode,
   };
 
   return (

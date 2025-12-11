@@ -9,9 +9,12 @@ import { HelpOverlay } from "@/components/ui/HelpOverlay";
 import { HistoryOverlay } from "@/components/ui/HistoryOverlay";
 import { MarksOverlay } from "@/components/ui/MarksOverlay";
 import { SearchOverlay } from "@/components/ui/SearchOverlay";
+import { TelescopeOverlay } from "@/components/ui/TelescopeOverlay";
 import { WhichKeyOverlay } from "@/components/ui/WhichKeyOverlay";
+import { useBuffers } from "@/context/BufferContext";
 import { useHistory } from "@/context/HistoryContext";
 import { useNavigation } from "@/context/NavigationContext";
+import { useTheme } from "@/context/ThemeContext";
 
 import type { FC, ReactNode } from "react";
 
@@ -34,6 +37,8 @@ export const Terminal: FC<TerminalProps> = ({
 }) => {
   const navigate = useNavigate();
   const { setIsJumplistNavigation } = useHistory();
+  const { switchToBuffer } = useBuffers();
+  const { setColorscheme } = useTheme();
   const {
     mode,
     setMode,
@@ -55,9 +60,17 @@ export const Terminal: FC<TerminalProps> = ({
     showWhichKey,
     showBufferList,
     setShowBufferList,
+    showTelescope,
+    setShowTelescope,
+    telescopeMode,
   } = useNavigation();
 
   const handleHistoryNavigate = (path: string) => {
+    setIsJumplistNavigation(true);
+    navigate({ to: path as "/", search: {} });
+  };
+
+  const handleTelescopeNavigate = (path: string) => {
     setIsJumplistNavigation(true);
     navigate({ to: path as "/", search: {} });
   };
@@ -151,6 +164,17 @@ export const Terminal: FC<TerminalProps> = ({
         {/* Buffer list overlay */}
         {showBufferList && (
           <BufferListOverlay onClose={() => setShowBufferList(false)} />
+        )}
+
+        {/* Telescope overlay */}
+        {showTelescope && (
+          <TelescopeOverlay
+            mode={telescopeMode}
+            onClose={() => setShowTelescope(false)}
+            onNavigate={handleTelescopeNavigate}
+            onSwitchBuffer={switchToBuffer}
+            onSetColorscheme={setColorscheme}
+          />
         )}
       </div>
     </div>

@@ -115,7 +115,7 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               </div>
             </div>
 
-            {/* Commands Section */}
+            {/* Telescope Section */}
             <div>
               <h3
                 className="mb-3 pb-1 font-bold"
@@ -124,13 +124,13 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                   borderBottom: "1px solid var(--surface1)",
                 }}
               >
-                Commands
+                Telescope
               </h3>
               <div className="space-y-2">
-                <KeyBinding keys=":q" description="Go home" />
-                <KeyBinding keys=":e <path>" description="Open file" />
-                <KeyBinding keys=":recent" description="Recent files" />
-                <KeyBinding keys=":theme" description="Theme picker" />
+                <KeyBinding keys=":Tel ff" description="Find files" />
+                <KeyBinding keys=":Tel buf" description="Buffers" />
+                <KeyBinding keys=":Tel m" description="Marks" />
+                <KeyBinding keys=":Tel cmd" description="Commands" />
               </div>
             </div>
 
