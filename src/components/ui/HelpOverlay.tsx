@@ -50,15 +50,15 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                 <KeyBinding keys="j / ↓" description="Move down" />
                 <KeyBinding keys="k / ↑" description="Move up" />
                 <KeyBinding keys="{n}j/k" description="Move n lines" />
-                <KeyBinding keys="Ctrl+d" description="Scroll down" />
-                <KeyBinding keys="Ctrl+u" description="Scroll up" />
+                <KeyBinding keys="Ctrl+d/u" description="Scroll half page" />
+                <KeyBinding keys="Ctrl+o/i" description="Jump back/forward" />
                 <KeyBinding keys="Enter" description="Open" />
                 <KeyBinding keys="gx" description="Open link" />
                 <KeyBinding keys="-" description="Parent" />
               </div>
             </div>
 
-            {/* History Section */}
+            {/* Buffers Section */}
             <div>
               <h3
                 className="mb-3 pb-1 font-bold"
@@ -67,13 +67,13 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
                   borderBottom: "1px solid var(--surface1)",
                 }}
               >
-                History
+                Buffers
               </h3>
               <div className="space-y-2">
-                <KeyBinding keys="Ctrl+o" description="Jump back" />
-                <KeyBinding keys="Ctrl+i" description="Jump forward" />
-                <KeyBinding keys=":recent" description="Recent files" />
-                <KeyBinding keys=":history" description="Recent files" />
+                <KeyBinding keys="b{1-9}" description="Switch to buffer" />
+                <KeyBinding keys="b#" description="Alternate buffer" />
+                <KeyBinding keys=":ls" description="List buffers" />
+                <KeyBinding keys=":bd / :bda" description="Close / close all" />
               </div>
             </div>
 
@@ -129,7 +129,7 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
               <div className="space-y-2">
                 <KeyBinding keys=":q" description="Go home" />
                 <KeyBinding keys=":e <path>" description="Open file" />
-                <KeyBinding keys=":help" description="Show help" />
+                <KeyBinding keys=":recent" description="Recent files" />
                 <KeyBinding keys=":theme" description="Theme picker" />
               </div>
             </div>
@@ -170,8 +170,9 @@ export const HelpOverlay: FC<HelpOverlayProps> = ({ onClose }) => {
           </div>
           <div className="mt-1" style={{ color: "var(--overlay0)" }}>
             Tip: Hold <span style={{ color: "var(--green)" }}>g</span>,{" "}
-            <span style={{ color: "var(--green)" }}>m</span>, or{" "}
-            <span style={{ color: "var(--green)" }}>'</span> for hints
+            <span style={{ color: "var(--green)" }}>m</span>,{" "}
+            <span style={{ color: "var(--green)" }}>'</span>, or{" "}
+            <span style={{ color: "var(--green)" }}>b</span> for hints
           </div>
         </div>
       </div>

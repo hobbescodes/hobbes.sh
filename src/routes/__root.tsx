@@ -9,6 +9,7 @@ import {
 import { useEffect } from "react";
 
 import { NotFound } from "@/components/NotFound";
+import { BufferProvider } from "@/context/BufferContext";
 import { HistoryProvider, useHistory } from "@/context/HistoryContext";
 import { MarksProvider, useMarks } from "@/context/MarksContext";
 import { NavigationProvider } from "@/context/NavigationContext";
@@ -187,11 +188,13 @@ function RootComponent() {
           <HistoryProvider>
             <MarksProvider>
               <NavigationProvider>
-                <PaneProvider>
-                  <MarkEventsHandler />
-                  <HistoryEventsHandler />
-                  <Outlet />
-                </PaneProvider>
+                <BufferProvider>
+                  <PaneProvider>
+                    <MarkEventsHandler />
+                    <HistoryEventsHandler />
+                    <Outlet />
+                  </PaneProvider>
+                </BufferProvider>
               </NavigationProvider>
             </MarksProvider>
           </HistoryProvider>

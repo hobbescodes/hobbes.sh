@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { CommandLine } from "@/components/editor/CommandLine";
 import { StatusLine } from "@/components/terminal/StatusLine";
 import { TitleBar } from "@/components/terminal/TitleBar";
+import { BufferListOverlay } from "@/components/ui/BufferListOverlay";
 import { ColorschemeOverlay } from "@/components/ui/ColorschemeOverlay";
 import { HelpOverlay } from "@/components/ui/HelpOverlay";
 import { HistoryOverlay } from "@/components/ui/HistoryOverlay";
@@ -52,6 +53,8 @@ export const Terminal: FC<TerminalProps> = ({
     showHistory,
     setShowHistory,
     showWhichKey,
+    showBufferList,
+    setShowBufferList,
   } = useNavigation();
 
   const handleHistoryNavigate = (path: string) => {
@@ -143,6 +146,11 @@ export const Terminal: FC<TerminalProps> = ({
         {/* Which-Key overlay - shows hints for pending operators */}
         {showWhichKey && pendingOperator && (
           <WhichKeyOverlay pendingOperator={pendingOperator} />
+        )}
+
+        {/* Buffer list overlay */}
+        {showBufferList && (
+          <BufferListOverlay onClose={() => setShowBufferList(false)} />
         )}
       </div>
     </div>

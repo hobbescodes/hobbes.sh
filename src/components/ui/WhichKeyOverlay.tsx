@@ -1,6 +1,8 @@
+import { useBuffers } from "@/context/BufferContext";
 import { useMarks } from "@/context/MarksContext";
 
 import type { FC } from "react";
+import type { Buffer } from "@/context/BufferContext";
 import type { MarksRecord } from "@/context/MarksContext";
 
 interface WhichKeyOverlayProps {
@@ -11,6 +13,7 @@ export const WhichKeyOverlay: FC<WhichKeyOverlayProps> = ({
   pendingOperator,
 }) => {
   const { marks } = useMarks();
+  const { buffers, currentBufferId, alternateBufferId } = useBuffers();
 
   return (
     <div className="absolute right-4 bottom-10 z-40 animate-fade-in">
@@ -27,6 +30,13 @@ export const WhichKeyOverlay: FC<WhichKeyOverlayProps> = ({
         {pendingOperator === "g" && <GCommandHints />}
         {pendingOperator === "m" && <SetMarkHints marks={marks} />}
         {pendingOperator === "'" && <JumpToMarkHints marks={marks} />}
+        {pendingOperator === "b" && (
+          <BufferHints
+            buffers={buffers}
+            currentBufferId={currentBufferId}
+            alternateBufferId={alternateBufferId}
+          />
+        )}
       </div>
     </div>
   );
@@ -170,6 +180,105 @@ const JumpToMarkHints: FC<{ marks: MarksRecord }> = ({ marks }) => {
               </span>
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Hints for "b" (switch buffer) - shows available buffers with their numbers
+ */
+const BufferHints: FC<{
+  buffers: Buffer[];
+  currentBufferId: number | null;
+  alternateBufferId: number | null;
+}> = ({ buffers, currentBufferId, alternateBufferId }) => {
+  return (
+    <div className="p-3">
+      {/* Header */}
+      <div
+        className="mb-2 flex items-center gap-2 border-b pb-2 font-bold text-sm"
+        style={{
+          borderColor: "var(--surface0)",
+          color: "var(--blue)",
+        }}
+      >
+        <KeyBadge>b</KeyBadge>
+        <span style={{ color: "var(--subtext0)" }}>switch buffer</span>
+      </div>
+
+      {/* Buffer list */}
+      {buffers.length === 0 ? (
+        <div
+          className="py-2 text-center text-xs"
+          style={{ color: "var(--overlay0)" }}
+        >
+          no buffers open
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {buffers.slice(0, 9).map((buffer, index) => {
+            const isCurrent = buffer.id === currentBufferId;
+            const isAlternate = buffer.id === alternateBufferId && !isCurrent;
+            const displayNumber = index + 1;
+
+            return (
+              <div key={buffer.id} className="flex items-center gap-2 text-xs">
+                <span
+                  className="flex h-5 w-5 items-center justify-center rounded font-bold font-mono"
+                  style={{
+                    backgroundColor: isCurrent
+                      ? "var(--surface2)"
+                      : "var(--surface1)",
+                    color: isCurrent
+                      ? "var(--green)"
+                      : isAlternate
+                        ? "var(--yellow)"
+                        : "var(--blue)",
+                  }}
+                >
+                  {displayNumber}
+                </span>
+                <span
+                  className="truncate font-mono"
+                  style={{
+                    color: isCurrent ? "var(--text)" : "var(--subtext0)",
+                  }}
+                >
+                  {buffer.displayName}
+                </span>
+                {isCurrent && (
+                  <span className="text-xs" style={{ color: "var(--green)" }}>
+                    %
+                  </span>
+                )}
+                {isAlternate && (
+                  <span className="text-xs" style={{ color: "var(--yellow)" }}>
+                    #
+                  </span>
+                )}
+              </div>
+            );
+          })}
+          {/* Show alternate buffer hint */}
+          {alternateBufferId !== null && (
+            <div
+              className="mt-2 flex items-center gap-2 border-t pt-2 text-xs"
+              style={{ borderColor: "var(--surface0)" }}
+            >
+              <span
+                className="flex h-5 w-5 items-center justify-center rounded font-bold font-mono"
+                style={{
+                  backgroundColor: "var(--surface1)",
+                  color: "var(--yellow)",
+                }}
+              >
+                #
+              </span>
+              <span style={{ color: "var(--subtext0)" }}>alternate buffer</span>
+            </div>
+          )}
         </div>
       )}
     </div>

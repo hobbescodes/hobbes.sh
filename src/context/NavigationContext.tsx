@@ -88,6 +88,10 @@ interface NavigationContextValue {
 
   // Which-Key overlay
   showWhichKey: boolean;
+
+  // Buffer list overlay
+  showBufferList: boolean;
+  setShowBufferList: (show: boolean) => void;
 }
 
 const NavigationContext = createContext<NavigationContextValue | null>(null);
@@ -167,6 +171,9 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
 
   // History overlay
   const [showHistory, setShowHistory] = useState(false);
+
+  // Buffer list overlay
+  const [showBufferList, setShowBufferList] = useState(false);
 
   // Which-Key overlay - shows after delay when pending operator is active
   const [showWhichKey, setShowWhichKey] = useState(false);
@@ -346,6 +353,62 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
       // :recent / :history / :jumps opens the history overlay
       setMode("NORMAL");
       setShowHistory(true);
+    } else if (
+      cmdLower === "ls" ||
+      cmdLower === "buffers" ||
+      cmdLower === "buf"
+    ) {
+      // :ls / :buffers / :buf opens the buffer list overlay
+      setMode("NORMAL");
+      setShowBufferList(true);
+    } else if (cmdLower.startsWith("b ") || cmdLower.startsWith("buffer ")) {
+      // :b <n> or :b <query> switches to a buffer
+      const arg = cmd.replace(/^(b|buffer)\s+/i, "").trim();
+
+      if (!arg) {
+        setCommandError("E471: Argument required");
+        return;
+      }
+
+      // Try parsing as number first
+      const bufferNum = parseInt(arg, 10);
+      if (!Number.isNaN(bufferNum) && bufferNum > 0) {
+        window.dispatchEvent(
+          new CustomEvent("buffer-switch", { detail: { number: bufferNum } }),
+        );
+        setMode("NORMAL");
+      } else {
+        // Treat as query string
+        window.dispatchEvent(
+          new CustomEvent("buffer-switch", { detail: { query: arg } }),
+        );
+        setMode("NORMAL");
+      }
+    } else if (cmdLower === "bd" || cmdLower === "bdelete") {
+      // :bd / :bdelete deletes the current buffer
+      window.dispatchEvent(new CustomEvent("buffer-delete", { detail: {} }));
+      setMode("NORMAL");
+    } else if (
+      cmdLower === "bda" ||
+      cmdLower === "bdall" ||
+      cmdLower === "bufdo bd"
+    ) {
+      // :bda / :bdall / :bufdo bd deletes all buffers
+      window.dispatchEvent(new CustomEvent("buffer-delete-all"));
+      setMode("NORMAL");
+    } else if (cmdLower.startsWith("bd ") || cmdLower.startsWith("bdelete ")) {
+      // :bd <n> deletes a specific buffer by number
+      const arg = cmd.replace(/^(bd|bdelete)\s+/i, "").trim();
+      const bufferNum = parseInt(arg, 10);
+
+      if (!Number.isNaN(bufferNum) && bufferNum > 0) {
+        window.dispatchEvent(
+          new CustomEvent("buffer-delete", { detail: { number: bufferNum } }),
+        );
+        setMode("NORMAL");
+      } else {
+        setCommandError(`E474: Invalid argument: ${arg}`);
+      }
     } else {
       setCommandError(`Unknown command: ${cmd}`);
     }
@@ -446,6 +509,39 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
           return;
         }
 
+        // Handle "b" pending operator for switching buffers
+        if (pendingOperator === "b") {
+          e.preventDefault();
+          // Escape or Backspace cancels the pending operator
+          if (e.key === "Escape" || e.key === "Backspace") {
+            clearPendingState();
+            return;
+          }
+          // Handle buffer number (1-9)
+          if (/^[1-9]$/.test(e.key)) {
+            window.dispatchEvent(
+              new CustomEvent("buffer-switch", {
+                detail: { number: parseInt(e.key, 10) },
+              }),
+            );
+            clearPendingState();
+            return;
+          }
+          // Handle '#' for alternate buffer
+          if (e.key === "#") {
+            window.dispatchEvent(new CustomEvent("buffer-switch-alternate"));
+            clearPendingState();
+            return;
+          }
+          // Any other key cancels
+          if (e.key.length === 1) {
+            clearPendingState();
+            return;
+          }
+          // Ignore other special keys
+          return;
+        }
+
         // Handle Ctrl+D and Ctrl+U for half-page scrolling
         if (e.ctrlKey && (e.key === "d" || e.key === "u")) {
           e.preventDefault();
@@ -492,6 +588,14 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
           return;
         }
 
+        // Handle Ctrl+^ or Ctrl+6 for alternate buffer
+        if (e.ctrlKey && (e.key === "^" || e.key === "6")) {
+          e.preventDefault();
+          setCountBuffer("");
+          window.dispatchEvent(new CustomEvent("buffer-switch-alternate"));
+          return;
+        }
+
         // Handle digit keys for count buffer (vim-style count prefix)
         if (e.key >= "0" && e.key <= "9") {
           // Don't capture '0' if count buffer is empty (0 alone could be future "go to start")
@@ -507,6 +611,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
           case "g":
           case "m":
           case "'":
+          case "b":
             e.preventDefault();
             setCountBuffer(""); // Clear count when starting pending operator
             setPendingOperator(e.key);
@@ -681,6 +786,7 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     setShowMarks(false);
     setShowHistory(false);
     setShowWhichKey(false);
+    setShowBufferList(false);
   }, [location.pathname]);
 
   const value: NavigationContextValue = {
@@ -710,6 +816,8 @@ export const NavigationProvider: FC<NavigationProviderProps> = ({
     showHistory,
     setShowHistory,
     showWhichKey,
+    showBufferList,
+    setShowBufferList,
   };
 
   return (
