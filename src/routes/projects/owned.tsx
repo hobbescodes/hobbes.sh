@@ -2,16 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   ProjectCategoryPage,
-  projectsByCategoryQueryOptions,
+  prefetchCategoryRepos,
 } from "@/components/projects/ProjectCategoryPage";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/owned")({
   component: OwnedProjectsPage,
-  loader: ({ context }) =>
-    context.queryClient.ensureQueryData(
-      projectsByCategoryQueryOptions("owned"),
-    ),
+  loader: ({ context }) => prefetchCategoryRepos(context.queryClient, "owned"),
   head: () => {
     const { meta, links } = seo({
       title: "Owned Projects",

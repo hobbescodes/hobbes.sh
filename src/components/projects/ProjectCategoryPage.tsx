@@ -1,34 +1,56 @@
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useSuspenseQueries } from "@tanstack/react-query";
+import { notFound, useNavigate } from "@tanstack/react-router";
 
 import { Buffer } from "@/components/editor/Buffer";
 import { OilEntry } from "@/components/oil/OilEntry";
 import { Terminal } from "@/components/terminal/Terminal";
+import { getRepositoryQueryOptions } from "@/generated/operations";
 import { useOilNavigation } from "@/hooks/useOilNavigation";
-import { fetchProjectsByCategory } from "@/server/functions/github";
+import { getReposByCategory } from "@/lib/projects.config";
 
+import type { QueryClient } from "@tanstack/react-query";
 import type { FC } from "react";
+import type { RepositoryFieldsFragment } from "@/generated/types";
 import type { ProjectCategory } from "@/lib/projects.config";
-import type { Project, RouteEntry } from "@/types";
+import type { RouteEntry } from "@/types";
 
 /**
- * Query options for fetching projects by category
+ * Prefetch all repositories for a category.
+ * Used in route loaders to ensure data is available for SSR.
+ * Throws notFound if any repository in the category doesn't exist.
  */
-export const projectsByCategoryQueryOptions = (category: ProjectCategory) =>
-  queryOptions({
-    queryKey: ["projects", category],
-    queryFn: () => fetchProjectsByCategory({ data: category }),
-  });
+export const prefetchCategoryRepos = async (
+  queryClient: QueryClient,
+  category: ProjectCategory,
+) => {
+  const repoConfigs = getReposByCategory(category);
+  const results = await Promise.all(
+    repoConfigs.map((config) =>
+      queryClient.ensureQueryData(
+        getRepositoryQueryOptions({ owner: config.owner, name: config.repo }),
+      ),
+    ),
+  );
+
+  // Throw notFound if any repository doesn't exist
+  for (const result of results) {
+    if (!result.repository) {
+      throw notFound();
+    }
+  }
+};
 
 /**
- * Convert projects to RouteEntry format for OilEntry component
+ * Convert repository data to RouteEntry format for OilEntry component
  */
-function getProjectRouteEntries(projects: Project[]): RouteEntry[] {
-  return projects.map((p) => ({
-    name: p.name,
-    displayName: `${p.name}.md`,
+function getProjectRouteEntries(
+  repos: RepositoryFieldsFragment[],
+): RouteEntry[] {
+  return repos.map((r) => ({
+    name: r.name,
+    displayName: `${r.name}.md`,
     type: "file",
-    path: `/projects/${p.name}`,
+    path: `/projects/${r.name}`,
   }));
 }
 
@@ -47,9 +69,20 @@ export const ProjectCategoryPage: FC<ProjectCategoryPageProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const { data: projects } = useSuspenseQuery(
-    projectsByCategoryQueryOptions(category),
-  );
+  // Get the repo configs for this category
+  const repoConfigs = getReposByCategory(category);
+
+  // Fetch all repositories in parallel using generated queryOptions
+  const results = useSuspenseQueries({
+    queries: repoConfigs.map((config) =>
+      getRepositoryQueryOptions({ owner: config.owner, name: config.repo }),
+    ),
+  });
+
+  // Extract the repository data, filtering out any null results
+  const projects = results
+    .map((result) => result.data.repository)
+    .filter((repo): repo is RepositoryFieldsFragment => repo !== null);
 
   // Find the index of the entry we came from (if any)
   // Index 0 is parent (..), so project entries start at 1
@@ -130,7 +163,8 @@ export const ProjectCategoryPage: FC<ProjectCategoryPageProps> = ({
                 className="ml-2 text-xs"
                 style={{ color: "var(--overlay0)" }}
               >
-                {projects[index].language} | ★ {projects[index].stars}
+                {projects[index].primaryLanguage?.name ?? "Unknown"} | ★{" "}
+                {projects[index].stargazerCount}
               </span>
             </OilEntry>
           ))}

@@ -56,20 +56,3 @@ export interface BlogPost {
   content: string[];
   readingTime?: string;
 }
-
-// Project types
-export interface Project {
-  owner: string;
-  name: string;
-  description: string;
-  url: string;
-  language: string;
-  stars: number;
-  forks: number;
-  topics: string[];
-  updatedAt: string;
-}
-
-export interface ProjectWithReadme extends Project {
-  readme: string;
-}

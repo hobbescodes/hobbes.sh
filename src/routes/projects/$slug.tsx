@@ -1,4 +1,4 @@
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   createFileRoute,
   notFound,
@@ -14,10 +14,10 @@ import { ProjectPreview } from "@/components/preview/ProjectPreview";
 import { SplitPane } from "@/components/terminal/SplitPane";
 import { Terminal } from "@/components/terminal/Terminal";
 import { usePane } from "@/context/PaneContext";
+import { getRepositoryWithReadmeQueryOptions } from "@/generated/operations";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { getAllFeaturedRepos, getCategoryForRepo } from "@/lib/projects.config";
 import { seo } from "@/lib/seo";
-import { fetchProjectWithReadme } from "@/server/functions/github";
 import { getPreviewState, setPreviewState } from "@/server/functions/preview";
 
 interface ProjectSearchParams {
@@ -29,20 +29,11 @@ const defaultSearch: ProjectSearchParams = {
 };
 
 /**
- * Query options for fetching a single project with README
+ * Find the repo config for a given slug (repo name)
  */
-const projectQueryOptions = (slug: string) =>
-  queryOptions({
-    queryKey: ["project", slug],
-    queryFn: () => fetchProjectWithReadme({ data: slug }),
-  });
-
-/**
- * Validate that a slug is in the featured repos list
- */
-function isValidProjectSlug(slug: string): boolean {
+function findRepoConfigBySlug(slug: string) {
   const allRepos = getAllFeaturedRepos();
-  return allRepos.some((config) => config.repo === slug);
+  return allRepos.find((config) => config.repo === slug);
 }
 
 export const Route = createFileRoute("/projects/$slug")({
@@ -54,16 +45,29 @@ export const Route = createFileRoute("/projects/$slug")({
     middlewares: [stripSearchParams(defaultSearch)],
   },
   loader: async ({ params, context }) => {
-    // Validate slug is in featured repos list
-    if (!isValidProjectSlug(params.slug)) {
+    // Validate slug is in featured repos list and get repo config
+    const repoConfig = findRepoConfigBySlug(params.slug);
+    if (!repoConfig) {
       throw notFound();
     }
+
     // Prefetch project data and get initial preview state
-    const [, initialPreviewOpen] = await Promise.all([
-      context.queryClient.ensureQueryData(projectQueryOptions(params.slug)),
+    const [repoData, initialPreviewOpen] = await Promise.all([
+      context.queryClient.ensureQueryData(
+        getRepositoryWithReadmeQueryOptions({
+          owner: repoConfig.owner,
+          name: repoConfig.repo,
+        }),
+      ),
       getPreviewState(),
     ]);
-    return { slug: params.slug, initialPreviewOpen };
+
+    // Throw notFound if repository doesn't exist
+    if (!repoData.repository) {
+      throw notFound();
+    }
+
+    return { repoConfig, initialPreviewOpen };
   },
   head: ({ params }) => {
     const { meta, links } = seo({
@@ -79,7 +83,7 @@ export const Route = createFileRoute("/projects/$slug")({
 function ProjectPage() {
   const { slug } = Route.useParams();
   const { preview } = Route.useSearch();
-  const { initialPreviewOpen } = Route.useLoaderData();
+  const { repoConfig, initialPreviewOpen } = Route.useLoaderData();
   const navigate = useNavigate();
   const {
     isPreviewOpen,
@@ -89,7 +93,29 @@ function ProjectPage() {
     setOnCloseCallback,
   } = usePane();
 
-  const { data: project } = useSuspenseQuery(projectQueryOptions(slug));
+  const { data } = useSuspenseQuery(
+    getRepositoryWithReadmeQueryOptions({
+      owner: repoConfig.owner,
+      name: repoConfig.repo,
+    }),
+  );
+
+  // biome-ignore lint/style/noNonNullAssertion: loader throws notFound if null
+  const repository = data.repository!;
+
+  // Extract fields from the repository data
+  const name = repository.name;
+  const description = repository.description ?? "No description provided";
+  const url = repository.url;
+  const language = repository.primaryLanguage?.name ?? "Unknown";
+  const stars = repository.stargazerCount;
+  const forks = repository.forkCount;
+  const topics =
+    repository.repositoryTopics.nodes?.map((n) => n.topic.name) ?? [];
+  const updatedAt = repository.updatedAt;
+  const owner = (repository.owner as { login: string }).login;
+  // README is available via repository.object.text if needed in the future
+  // const readme = (repository.object as { text?: string } | null)?.text;
 
   // Track if we've already initialized to prevent re-opening after close
   const hasInitialized = useRef(false);
@@ -99,7 +125,7 @@ function ProjectPage() {
   if (!hasInitialized.current) {
     const shouldOpenPreview = preview || initialPreviewOpen;
     if (shouldOpenPreview && !isPreviewOpen) {
-      openPreview(project.url);
+      openPreview(url);
     }
     hasInitialized.current = true;
   }
@@ -125,38 +151,38 @@ function ProjectPage() {
     };
   }, [closePreview]);
 
-  // Build content array - memoized since it depends on project
+  // Build content array - memoized since it depends on repository data
   const content = useMemo(() => {
     return [
-      `# ${project.name}`,
+      `# ${name}`,
       "",
-      project.description,
+      description,
       "",
       "",
       "## Details",
       "",
-      `  Language:    ${project.language}`,
-      `  Stars:       ${project.stars}`,
-      `  Forks:       ${project.forks}`,
-      `  Updated:     ${new Date(project.updatedAt).toLocaleDateString()}`,
+      `  Language:    ${language}`,
+      `  Stars:       ${stars}`,
+      `  Forks:       ${forks}`,
+      `  Updated:     ${new Date(updatedAt).toLocaleDateString()}`,
       "",
       "",
       "## Topics",
       "",
-      ...project.topics.map((t) => `  - ${t}`),
+      ...topics.map((t) => `  - ${t}`),
       "",
       "",
       "## Links",
       "",
-      `  Repository:  ${project.url}`,
+      `  Repository:  ${url}`,
       "",
     ];
-  }, [project]);
+  }, [name, description, language, stars, forks, updatedAt, topics, url]);
 
   // Handler for Enter on link lines - opens preview pane and updates URL/cookie
   const handleLinkEnter = useCallback(
-    (url: string) => {
-      openPreview(url);
+    (linkUrl: string) => {
+      openPreview(linkUrl);
       setPreviewState({ data: true });
       navigate({ search: { preview: true } });
     },
@@ -243,7 +269,7 @@ function ProjectPage() {
           </Buffer>
         </SplitPane.Left>
         <SplitPane.Right>
-          <ProjectPreview project={project} />
+          <ProjectPreview project={{ owner, name, url }} />
         </SplitPane.Right>
       </SplitPane>
     </Terminal>

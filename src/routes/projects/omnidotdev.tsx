@@ -2,16 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   ProjectCategoryPage,
-  projectsByCategoryQueryOptions,
+  prefetchCategoryRepos,
 } from "@/components/projects/ProjectCategoryPage";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/omnidotdev")({
   component: OmnidotdevProjectsPage,
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(
-      projectsByCategoryQueryOptions("omnidotdev"),
-    ),
+    prefetchCategoryRepos(context.queryClient, "omnidotdev"),
   head: () => {
     const { meta, links } = seo({
       title: "Omnidotdev Projects",

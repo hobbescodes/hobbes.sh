@@ -5,10 +5,13 @@ import { Spinner } from "@/components/ui/Spinner";
 import { usePane } from "@/context/PaneContext";
 
 import type { FC } from "react";
-import type { ProjectWithReadme } from "@/types";
 
 interface ProjectPreviewProps {
-  project: ProjectWithReadme;
+  project: {
+    owner: string;
+    name: string;
+    url: string;
+  };
 }
 
 /**

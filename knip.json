@@ -2,7 +2,8 @@
   "$schema": "https://unpkg.com/knip@latest/schema.json",
   "entry": ["src/routes/**/*.tsx", "src/router.tsx", "vite.config.ts"],
   "project": ["src/**/*.{ts,tsx,css}"],
-  "ignore": ["src/routeTree.gen.ts"],
+  "ignore": ["src/routeTree.gen.ts", "src/generated/**"],
+  "ignoreDependencies": ["tangen"],
   "ignoreExportsUsedInFile": true,
   "tags": ["-knipignore"]
 }

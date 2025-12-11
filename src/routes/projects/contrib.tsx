@@ -2,16 +2,14 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import {
   ProjectCategoryPage,
-  projectsByCategoryQueryOptions,
+  prefetchCategoryRepos,
 } from "@/components/projects/ProjectCategoryPage";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/contrib")({
   component: ContribProjectsPage,
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(
-      projectsByCategoryQueryOptions("contrib"),
-    ),
+    prefetchCategoryRepos(context.queryClient, "contrib"),
   head: () => {
     const { meta, links } = seo({
       title: "Contributions",

@@ -1,0 +1,40 @@
+fragment RepositoryFields on Repository {
+  name
+  description
+  url
+  stargazerCount
+  forkCount
+  updatedAt
+  primaryLanguage {
+    name
+  }
+  repositoryTopics(first: 20) {
+    nodes {
+      topic {
+        name
+      }
+    }
+  }
+  owner {
+    login
+  }
+}
+
+# Single repository query (for category listings)
+query GetRepository($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    ...RepositoryFields
+  }
+}
+
+# Single repository with README (for project detail page)
+query GetRepositoryWithReadme($owner: String!, $name: String!) {
+  repository(owner: $owner, name: $name) {
+    ...RepositoryFields
+    object(expression: "HEAD:README.md") {
+      ... on Blob {
+        text
+      }
+    }
+  }
+}
