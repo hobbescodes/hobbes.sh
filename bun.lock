@@ -30,7 +30,7 @@
         "@vitejs/plugin-react": "^5.0.4",
         "jsdom": "^27.0.0",
         "knip": "^5.72.0",
-        "tangen": "^0.9.0",
+        "tangen": "^0.10.0",
         "tw-animate-css": "^1.4.0",
         "typescript": "^5.7.2",
         "vite": "^7.1.7",
@@ -869,7 +869,7 @@
 
     "tailwindcss": ["tailwindcss@4.1.17", "", {}, "sha512-j9Ee2YjuQqYT9bbRTfTZht9W/ytp5H+jJpZKiYdP/bpnXARAuELt9ofP0lPnmHjbga7SNQIxdTAXCmtKVYjN+Q=="],
 
-    "tangen": ["tangen@0.9.0", "", { "dependencies": { "@apidevtools/swagger-parser": "^10.1.1", "c12": "^3.3.2", "chokidar": "^5.0.0", "citty": "^0.1.6", "consola": "^3.4.0", "fast-glob": "^3.3.3", "graphql": "^16.10.0", "micromatch": "^4.0.8", "openapi-types": "^12.1.3", "picomatch": "^4.0.3", "zod": "^3.24.4" }, "peerDependencies": { "@better-fetch/fetch": ">=1.0.0", "@tanstack/react-query": ">=5.0.0", "graphql-request": ">=6.0.0" }, "optionalPeers": ["@better-fetch/fetch", "@tanstack/react-query", "graphql-request"], "bin": { "tangen": "dist/cli.js" } }, "sha512-jUEzlacm/RAFH1Lgnx00Z8T2SVFrqOOSiWjOL/6igF+pd4TsdV0zTZnjR7MsKM8sXYW+THPPvZ1/Ta76Z/rsKw=="],
+    "tangen": ["tangen@0.10.0", "", { "dependencies": { "@apidevtools/swagger-parser": "^10.1.1", "c12": "^3.3.2", "chokidar": "^5.0.0", "citty": "^0.1.6", "consola": "^3.4.0", "fast-glob": "^3.3.3", "graphql": "^16.10.0", "micromatch": "^4.0.8", "openapi-types": "^12.1.3", "picomatch": "^4.0.3", "zod": "^3.24.4" }, "peerDependencies": { "@better-fetch/fetch": ">=1.0.0", "@tanstack/react-query": ">=5.0.0", "graphql-request": ">=6.0.0" }, "optionalPeers": ["@better-fetch/fetch", "@tanstack/react-query", "graphql-request"], "bin": { "tangen": "dist/cli.js" } }, "sha512-gb5a3J21WZVCjP6vAg4QjX1c8GqLCMYBY1v0i1ES+87uJrOnbWHcUueNt3jARPHOh0NA5jEhQKyfk5qYunARUg=="],
 
     "tapable": ["tapable@2.3.0", "", {}, "sha512-g9ljZiwki/LfxmQADO3dEY1CbpmXT5Hm2fJ+QaGKwSXUylMybePR7/67YW7jOrrvjEgL1Fmz5kzyAjWVWLlucg=="],
 

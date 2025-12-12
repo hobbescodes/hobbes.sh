@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ProjectCategoryPage } from "@/components/projects/ProjectCategoryPage";
-import { getContribReposQueryOptions } from "@/generated/operations";
+import { getContribReposQueryOptions } from "@/generated/query/github/operations";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/contrib")({

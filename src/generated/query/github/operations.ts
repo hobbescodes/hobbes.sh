@@ -51,7 +51,7 @@ query GetOwnedRepos {
 
 export const getOwnedReposQueryOptions = () =>
 	queryOptions({
-		queryKey: ["GetOwnedRepos"],
+		queryKey: ["github", "GetOwnedRepos"],
 		queryFn: async () => (await getClient()).request<GetOwnedReposQuery>(GetOwnedReposDocument),
 	})
 
@@ -71,7 +71,7 @@ query GetOmnidotdevRepos {
 
 export const getOmnidotdevReposQueryOptions = () =>
 	queryOptions({
-		queryKey: ["GetOmnidotdevRepos"],
+		queryKey: ["github", "GetOmnidotdevRepos"],
 		queryFn: async () => (await getClient()).request<GetOmnidotdevReposQuery>(GetOmnidotdevReposDocument),
 	})
 
@@ -85,7 +85,7 @@ query GetContribRepos {
 
 export const getContribReposQueryOptions = () =>
 	queryOptions({
-		queryKey: ["GetContribRepos"],
+		queryKey: ["github", "GetContribRepos"],
 		queryFn: async () => (await getClient()).request<GetContribReposQuery>(GetContribReposDocument),
 	})
 
@@ -104,6 +104,6 @@ query GetRepositoryWithReadme($owner: String!, $name: String!) {
 
 export const getRepositoryWithReadmeQueryOptions = (variables: GetRepositoryWithReadmeQueryVariables) =>
 	queryOptions({
-		queryKey: ["GetRepositoryWithReadme", variables],
+		queryKey: ["github", "GetRepositoryWithReadme", variables],
 		queryFn: async () => (await getClient()).request<GetRepositoryWithReadmeQuery>(GetRepositoryWithReadmeDocument, variables ?? undefined),
 	})
