@@ -44,7 +44,7 @@ export const featuredRepos: Record<
   ProjectCategory,
   (string | FeaturedRepoConfig)[]
 > = {
-  owned: ["hobbes.sh", "tangen"],
+  owned: ["hobbes.sh", "tangrams"],
   omnidotdev: [
     { owner: "omnidotdev", repo: "rdk", displayName: "RDK" },
     { owner: "omnidotdev", repo: "backfeed-app", displayName: "Backfeed" },

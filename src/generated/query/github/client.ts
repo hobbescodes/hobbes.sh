@@ -1,5 +1,5 @@
 /* eslint-disable */
-/* GraphQL Client - Generated once by tangen. Customize as needed. */
+/* GraphQL Client - Generated once by tangrams. Customize as needed. */
 
 import { createServerFn } from "@tanstack/react-start"
 import { GraphQLClient } from "graphql-request"

@@ -30,7 +30,7 @@ export type GetOwnedReposQueryVariables = Record<string, never>
 
 export type GetOwnedReposQuery = {
   hobbes_sh: RepositoryFieldsFragment | null
-  tangen: RepositoryFieldsFragment | null
+  tangrams: RepositoryFieldsFragment | null
 }
 
 export type GetOmnidotdevReposQueryVariables = Record<string, never>

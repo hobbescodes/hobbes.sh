@@ -25,7 +25,7 @@ query GetOwnedRepos {
   hobbes_sh: repository(owner: "hobbescodes", name: "hobbes.sh") {
     ...RepositoryFields
   }
-  tangen: repository(owner: "hobbescodes", name: "tangen") {
+  tangrams: repository(owner: "hobbescodes", name: "tangrams") {
     ...RepositoryFields
   }
 }
