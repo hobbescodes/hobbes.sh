@@ -22,7 +22,7 @@ export default defineConfig({
         X509Certificate: "string",
       },
       documents: "./src/graphql/**/*.graphql",
-      generates: { query: { serverFunctions: true } },
+      generates: ["query"],
     },
   ],
 });
