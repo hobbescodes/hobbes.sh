@@ -14,7 +14,7 @@ import { ProjectPreview } from "@/components/preview/ProjectPreview";
 import { SplitPane } from "@/components/terminal/SplitPane";
 import { Terminal } from "@/components/terminal/Terminal";
 import { usePane } from "@/context/PaneContext";
-import { getRepositoryWithReadmeQueryOptions } from "@/generated/query/github/operations";
+import { getRepositoryWithReadmeQueryOptions } from "@/generated/github/query/operations";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { getAllFeaturedRepos, getCategoryForRepo } from "@/lib/projects.config";
 import { seo } from "@/lib/seo";

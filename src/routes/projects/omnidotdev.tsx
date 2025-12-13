@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ProjectCategoryPage } from "@/components/projects/ProjectCategoryPage";
-import { getOmnidotdevReposQueryOptions } from "@/generated/query/github/operations";
+import { getOmnidotdevReposQueryOptions } from "@/generated/github/query/operations";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/omnidotdev")({
