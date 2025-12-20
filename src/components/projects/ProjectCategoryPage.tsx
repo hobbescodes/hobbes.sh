@@ -6,8 +6,8 @@ import { Terminal } from "@/components/terminal/Terminal";
 import { useOilNavigation } from "@/hooks/useOilNavigation";
 import { getCategoryAliases } from "@/lib/projects.config";
 
+import type { RepositoryFieldsFragment } from "@tangrams/github/schema";
 import type { FC } from "react";
-import type { RepositoryFieldsFragment } from "@/generated/types";
 import type { ProjectCategory } from "@/lib/projects.config";
 import type { RouteEntry } from "@/types";
 

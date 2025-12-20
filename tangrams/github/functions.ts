@@ -3,13 +3,7 @@
 
 import { getClient } from "./client"
 
-import type {
-	GetOwnedReposQuery,
-	GetOmnidotdevReposQuery,
-	GetContribReposQuery,
-	GetRepositoryWithReadmeQuery,
-	GetRepositoryWithReadmeQueryVariables,
-} from "./query/types"
+import type { GetContribReposQuery, GetOmnidotdevReposQuery, GetOwnedReposQuery, GetRepositoryWithReadmeQuery, GetRepositoryWithReadmeQueryVariables } from "./schema"
 
 // Fragment Documents
 const RepositoryFieldsFragmentDoc = /* GraphQL */ `
@@ -46,7 +40,7 @@ query GetOwnedRepos {
     ...RepositoryFields
   }
 }
-` + RepositoryFieldsFragmentDoc
+${RepositoryFieldsFragmentDoc}`
 
 const GetOmnidotdevReposDocument = /* GraphQL */ `
 query GetOmnidotdevRepos {
@@ -60,7 +54,7 @@ query GetOmnidotdevRepos {
     ...RepositoryFields
   }
 }
-` + RepositoryFieldsFragmentDoc
+${RepositoryFieldsFragmentDoc}`
 
 const GetContribReposDocument = /* GraphQL */ `
 query GetContribRepos {
@@ -68,7 +62,7 @@ query GetContribRepos {
     ...RepositoryFields
   }
 }
-` + RepositoryFieldsFragmentDoc
+${RepositoryFieldsFragmentDoc}`
 
 const GetRepositoryWithReadmeDocument = /* GraphQL */ `
 query GetRepositoryWithReadme($owner: String!, $name: String!) {
@@ -81,17 +75,18 @@ query GetRepositoryWithReadme($owner: String!, $name: String!) {
     }
   }
 }
-` + RepositoryFieldsFragmentDoc
+${RepositoryFieldsFragmentDoc}`
 
 // Functions
 export const getOwnedRepos = async () =>
-	(await getClient()).request<GetOwnedReposQuery>(GetOwnedReposDocument)
+  (await getClient()).request<GetOwnedReposQuery>(GetOwnedReposDocument)
 
 export const getOmnidotdevRepos = async () =>
-	(await getClient()).request<GetOmnidotdevReposQuery>(GetOmnidotdevReposDocument)
+  (await getClient()).request<GetOmnidotdevReposQuery>(GetOmnidotdevReposDocument)
 
 export const getContribRepos = async () =>
-	(await getClient()).request<GetContribReposQuery>(GetContribReposDocument)
+  (await getClient()).request<GetContribReposQuery>(GetContribReposDocument)
 
 export const getRepositoryWithReadme = async (variables: GetRepositoryWithReadmeQueryVariables) =>
-	(await getClient()).request<GetRepositoryWithReadmeQuery>(GetRepositoryWithReadmeDocument, variables ?? undefined)
+  (await getClient()).request<GetRepositoryWithReadmeQuery>(GetRepositoryWithReadmeDocument, variables ?? undefined)
+

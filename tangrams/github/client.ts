@@ -1,10 +1,10 @@
 /* eslint-disable */
 /* GraphQL Client - Generated once by tangrams. Customize as needed. */
 
-import { createServerFn } from "@tanstack/react-start"
-import { GraphQLClient } from "graphql-request"
+import { createServerFn } from "@tanstack/react-start";
+import { GraphQLClient } from "graphql-request";
 
-const endpoint = "https://api.github.com/graphql"
+const endpoint = "https://api.github.com/graphql";
 
 const getToken = createServerFn().handler(() => process.env.GITHUB_TOKEN);
 
@@ -13,11 +13,11 @@ const getToken = createServerFn().handler(() => process.env.GITHUB_TOKEN);
  * Customize this function to add dynamic headers (e.g., auth tokens).
  */
 export const getClient = async () => {
-	const token = await getToken();
+  const token = await getToken();
 
-	return new GraphQLClient(endpoint, {
-		headers: {
-			Authorization: `token ${token}`
-		},
-	})
-}
+  return new GraphQLClient(endpoint, {
+    headers: {
+      Authorization: `token ${token}`,
+    },
+  });
+};

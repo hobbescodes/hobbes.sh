@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { getRepositoryWithReadmeQueryOptions } from "@tangrams/github/query/options";
 import { Buffer } from "@/components/editor/Buffer";
 import { BufferLine } from "@/components/editor/BufferLine";
 import { NotFound } from "@/components/NotFound";
@@ -14,7 +15,6 @@ import { ProjectPreview } from "@/components/preview/ProjectPreview";
 import { SplitPane } from "@/components/terminal/SplitPane";
 import { Terminal } from "@/components/terminal/Terminal";
 import { usePane } from "@/context/PaneContext";
-import { getRepositoryWithReadmeQueryOptions } from "@/generated/github/query/operations";
 import { useBufferNavigation } from "@/hooks/useBufferNavigation";
 import { getAllFeaturedRepos, getCategoryForRepo } from "@/lib/projects.config";
 import { seo } from "@/lib/seo";

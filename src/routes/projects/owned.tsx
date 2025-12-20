@@ -1,8 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
+import { getOwnedReposQueryOptions } from "@tangrams/github/query/options";
 import { ProjectCategoryPage } from "@/components/projects/ProjectCategoryPage";
-import { getOwnedReposQueryOptions } from "@/generated/github/query/operations";
 import { seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/owned")({
